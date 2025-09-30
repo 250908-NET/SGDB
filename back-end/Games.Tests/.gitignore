@@ -1,0 +1,13 @@
+*.txt
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+bin/
+obj/
+TestResults/
+Games.Tests/TestResults/
