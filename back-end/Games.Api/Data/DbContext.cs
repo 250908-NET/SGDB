@@ -25,7 +25,7 @@ public class GamesDbContext  : DbContext
             .HasKey(gc => new { gc.GameId, gc.PlatformId });
 
         // Relationships
-        
+
         // Game to Platform
         modelBuilder.Entity<GamePlatform>()
             .HasOne(gp => gp.Game)
@@ -47,9 +47,9 @@ public class GamesDbContext  : DbContext
 
         // Game to Developer
         modelBuilder.Entity<Game>()
-            .HasOne(g => g.Publisher)
-            .WithMany(c => c.PublishedGames)
-            .HasForeignKey(g => g.PublisherId)
+            .HasOne(g => g.Developer)
+            .WithMany(c => c.DevelopedGames)
+            .HasForeignKey(g => g.DeveloperId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
