@@ -8,17 +8,26 @@ Snake Game Database Project 2
 
 ## Code & Naming Conventions
 
-Case: Use PascalCase for classes/methods, camelCase for local variables.  
+Case: Use PascalCase for classes/methods, camelCase for local variables.
 Commits: Follow Conventional Commits (https://www.conventionalcommits.org/en/v1.0.0/)
+
+Commit categories:
+- `feat`: work on new features
+- `fix`: bug fixes
+- `refactor`: refactoring production code (not tests, build scripts, or docs)
+- `style`: code style fixes
+- `test`: tests
+- `docs`: documentation (including code documentation)
+- `chore`: build and project config, miscellaneous
 
 # Example:
 
-feat: add login endpoint  
-fix: correct rating calculation  
+feat: add login endpoint
+fix: correct rating calculation
 docs: update README
 
-Database name: SGDB  
-Branches: Use <name/feature> format  
+Database name: SGDB
+Branches: Use <name/feature> format
 Example: vishesh/auth-login, shane/db-migrations
 
 ## Branching
@@ -41,7 +50,7 @@ git checkout <branchname>
 
 ### 1. Always sync with main before starting !!!
 
-git checkout main  
+git checkout main
 git pull origin main
 
 ### 2. Start work on your branch
@@ -50,15 +59,15 @@ git checkout -b <name/feature>
 
 # make changes
 
-git add .  
-git commit -m "feat: describe your change here"  
+git add .
+git commit -m "feat: describe your change here"
 git push -u origin <name/feature> # only first push
 
 ### 3. Keep your branch updated with main
 
-git checkout main  
-git pull origin main  
-git checkout <name/feature>  
+git checkout main
+git pull origin main
+git checkout <name/feature>
 git merge main
 
 ## Handling Merge Conflicts
@@ -66,11 +75,11 @@ git merge main
 If a conflict occurs during merge:
 
 1. Open the conflicting file(s) and fix the code manually
-2. Stage the resolved file(s):  
+2. Stage the resolved file(s):
    git add <file>
-3. Commit the merge resolution:  
+3. Commit the merge resolution:
    git commit
-4. Push your changes:  
+4. Push your changes:
    git push origin <name/feature>
 
 ## Pull Requests
@@ -89,9 +98,9 @@ If a conflict occurs during merge:
 
 # Sync with main:
 
-git checkout main  
-git pull origin main  
-git checkout <branch>  
+git checkout main
+git pull origin main
+git checkout <branch>
 git merge main
 
 # Commit: git commit -m "feat: add X"
