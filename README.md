@@ -8,7 +8,7 @@ Snake Game Database Project 2
 
 ## Code & Naming Conventions
 
-Case: Use PascalCase for classes, camelCase for variables/methods.  
+Case: Use PascalCase for classes/methods, camelCase for local variables.  
 Commits: Follow Conventional Commits (https://www.conventionalcommits.org/en/v1.0.0/)
 
 # Example:
