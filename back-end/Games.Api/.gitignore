@@ -12,4 +12,4 @@ appsettings.json
 .config/
 bin/
 obj/
-Data/Migrations
+Data/Migrations/
