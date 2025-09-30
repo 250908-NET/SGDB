@@ -7,5 +7,9 @@
 *.userosscache
 *.sln.docstates
 
+appsettings.Development.json
+appsettings.json
+.config/
 bin/
 obj/
+Data/Migrations
