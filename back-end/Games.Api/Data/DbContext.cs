@@ -14,6 +14,8 @@ public class GamesDbContext  : DbContext
     public DbSet<Platform> Platforms { get; set; } = null!;
     public DbSet<GamePlatform> GamePlatforms { get; set; } = null!;
     public DbSet<Company> Companies { get; set; } = null!;
+    public DbSet<Rating> Ratings { get; set; }
+
 
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,7 +27,7 @@ public class GamesDbContext  : DbContext
             .HasKey(gc => new { gc.GameId, gc.PlatformId });
 
         // Relationships
-        
+
         // Game to Platform
         modelBuilder.Entity<GamePlatform>()
             .HasOne(gp => gp.Game)
@@ -51,5 +53,29 @@ public class GamesDbContext  : DbContext
             .WithMany(c => c.PublishedGames)
             .HasForeignKey(g => g.PublisherId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Composite Primary Key
+        modelBuilder.Entity<Rating>()
+            .HasKey(r => new { r.UserID, r.GameID });
+
+        // Rating -> Game (many-to-one)
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.Game)
+            .WithMany(g => g.Ratings)
+            .HasForeignKey(r => r.GameID);
+
+        // Rating -> User (many-to-one)
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Ratings)
+            .HasForeignKey(r => r.UserID);
+
+        modelBuilder.Entity<Rating>()
+            .Property(r => r.Title)
+            .IsRequired();
+
+        modelBuilder.Entity<Rating>()
+            .Property(r => r.Rate)
+            .IsRequired();
     }
 }
