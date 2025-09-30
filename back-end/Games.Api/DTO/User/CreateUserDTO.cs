@@ -1,4 +1,4 @@
-namespace Game.DTOs;
+namespace Games.DTOs;
 
 public class CreateUserDto
 {

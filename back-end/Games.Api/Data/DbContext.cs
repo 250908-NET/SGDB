@@ -4,16 +4,17 @@ using Games.Models;
 namespace Games.Data;
 
 
-public class GamesDbContext  : DbContext
+public class GamesDbContext : DbContext
 {
     // Constructor
-    public GamesDbContext (DbContextOptions<GamesDbContext > options) : base(options) {}
+    public GamesDbContext(DbContextOptions<GamesDbContext> options) : base(options) { }
 
     // DbSets (tables)
     public DbSet<Game> Games { get; set; } = null!;
     public DbSet<Platform> Platforms { get; set; } = null!;
     public DbSet<GamePlatform> GamePlatforms { get; set; } = null!;
     public DbSet<Company> Companies { get; set; } = null!;
+    public DbSet<User> User { get; set; } = null!;
 
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,7 +26,7 @@ public class GamesDbContext  : DbContext
             .HasKey(gc => new { gc.GameId, gc.PlatformId });
 
         // Relationships
-        
+
         // Game to Platform
         modelBuilder.Entity<GamePlatform>()
             .HasOne(gp => gp.Game)
@@ -51,5 +52,10 @@ public class GamesDbContext  : DbContext
             .WithMany(c => c.PublishedGames)
             .HasForeignKey(g => g.PublisherId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // modelBuilder.Entity<User>()
+        // .HasMany(u => u.GameLibrary)
+        // .WithMany(g=>g.Users)
+
     }
 }

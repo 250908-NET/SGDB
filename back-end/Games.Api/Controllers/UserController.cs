@@ -4,6 +4,8 @@ using Games.Services;
 using Games.DTOs;
 using Games.Models;
 using Games.Data;
+using AutoMapper;
+using System.Collections.Generic;
 
 namespace Games.Controllers;
 
@@ -12,29 +14,24 @@ namespace Games.Controllers;
 public class UserController : ControllerBase
 {
     private readonly GamesDbContext _context;
+    private readonly IMapper _mapper;
 
-    public UserController(GamesDbContext context)
+    public UserController(GamesDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
+
     }
 
-    // GET: receive all platforms
-    // [HttpGet]
-    // public async Task<ActionResult<IEnumerable<PlatformDto>>> GetUsers()
-    // {
-    //     var Users = await _context.
-    //         .Include(p => p.GamePlatforms)
-    //         .ThenInclude(gp => gp.Game)
-    //         .ToListAsync();
+    //GET: receive all Users
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+    {
+        var Users = await _context.User.ToListAsync();
 
-    //     var result = platforms.Select(p => new PlatformDto
-    //     {
-    //         PlatformId = p.PlatformId,
-    //         Name = p.Name,
-    //         Games = p.GamePlatforms.Select(gp => gp.Game.Name).ToList()
-    //     });
+        var UserDTOs = _mapper.Map<IEnumerable<UserDto>>(Users);
 
-    //     return Ok(result);
-    // }
+        return Ok(UserDTOs);
+    }
 
 }
