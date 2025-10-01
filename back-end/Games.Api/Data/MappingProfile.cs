@@ -22,6 +22,14 @@ namespace Games.Data
             CreateMap<Company, CompanyDto>().ReverseMap();
             CreateMap<CreateCompanyDto, Company>();
             CreateMap<UpdateCompanyDto, Company>();
+
+            //Rating mappings
+            CreateMap<Rating, RatingDto>().ReverseMap();
+
+            // Genre mappings
+            CreateMap<Genre, GenreDto>().ReverseMap();
+            CreateMap<CreateGenreDto, Genre>();
+            CreateMap<UpdateGenreDto, Genre>();
         }
     }
 }
