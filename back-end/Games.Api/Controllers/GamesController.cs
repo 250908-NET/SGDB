@@ -1,9 +1,11 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Games.Services;
 using Games.DTOs;
 using Games.Models;
 using Games.Data;
+
 
 namespace Games.Controllers;
 
@@ -12,129 +14,75 @@ namespace Games.Controllers;
 public class GamesController : ControllerBase
 {
     private readonly GamesDbContext _context;
+    private readonly ILogger<GamesController> _logger;
+    private readonly IGameService _service;
+    private readonly IMapper _mapper;
 
-    public GamesController(GamesDbContext context)
+    public GamesController(ILogger<GamesController> logger, IGameService gameService, IMapper mapper, GamesDbContext context)
     {
-        _context = context;
+        _logger = logger;
+        _service = gameService;
+        _mapper = mapper;
     }
 
-    // GET: receive all games
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<GameDto>>> GetGames()
+    // Get all games
+    [HttpGet(Name = "GetAllGames")]
+    public async Task<IActionResult> GetAllAsync()
     {
-        var games = await _context.Games
-            .Include(g => g.GamePlatforms)
-                .ThenInclude(gp => gp.Platform)
-            .Include(g => g.Developer)
-            .Include(g => g.Publisher)
-            .ToListAsync();
-
-        var result = games.Select(g => new GameDto
-        {
-            GameId = g.GameId,
-            Name = g.Name,
-            Developer = g.Developer?.Name ?? "Unknown",
-            Publisher = g.Publisher?.Name ?? "Unknown",
-            ReleaseDate = g.ReleaseDate,
-            Platforms = g.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
-        });
-
-        return Ok(result);
+        _logger.LogInformation("Getting all games");
+        var games = await _service.GetAllAsync();
+        return Ok(_mapper.Map<List<GameDto>>(games));
     }
 
-    // GET: receive game by id
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GameDto>> GetGame(int id)
+    // Get a game by gameID
+    [HttpGet("{id}", Name = "GetGameById")]
+    public async Task<IActionResult> GetByIdAsync(int id)
     {
-        var game = await _context.Games
-            .Include(g => g.GamePlatforms)
-            .ThenInclude(gp => gp.Platform)
-            .FirstOrDefaultAsync(g => g.GameId == id);
-
+        _logger.LogInformation("Getting game {id}", id);
+        var game = await _service.GetByIdAsync(id);
         if (game is null)
             return NotFound("Game not found");
-
-        var result = new GameDto
-        {
-            GameId = game.GameId,
-            Name = game.Name,
-            ReleaseDate = game.ReleaseDate,
-            Developer = game.Developer?.Name ?? "Unknown",
-            Publisher = game.Publisher?.Name ?? "Unknown",
-            Platforms = game.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
-        };
-
-        return Ok(result);
+        return Ok(_mapper.Map<GameDto>(game));
     }
 
-    // POST: add game
-    [HttpPost]
-    public async Task<ActionResult<GameDto>> CreateGame(CreateGameDto dto)
+    // Add a game to DB
+    [HttpPost(Name = "CreateGame")]
+    public async Task<IActionResult> CreateAsync([FromBody] CreateGameDto dto)
     {
-        var game = new Game
-        {
-            Name = dto.Name,
-            ReleaseDate = dto.ReleaseDate,
-            DeveloperId = dto.DeveloperId,
-            PublisherId = dto.PublisherId
-        };
-
-        _context.Games.Add(game);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetGame), new { id = game.GameId }, new GameDto
-        {
-            GameId = game.GameId,
-            Name = game.Name,
-            ReleaseDate = game.ReleaseDate,
-            Developer = (await _context.Companies.FindAsync(dto.DeveloperId))?.Name ?? "Unknown",
-            Publisher = (await _context.Companies.FindAsync(dto.PublisherId))?.Name ?? "Unknown",
-            Platforms = new List<string>()
-        });
+        _logger.LogInformation("Creating game {@dto}", dto);
+        var game = _mapper.Map<Game>(dto);
+        await _service.CreateAsync(game);
+        return Created($"/api/games/{game.GameId}", _mapper.Map<GameDto>(game));
     }
 
-    // PUT: update game
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateGame(int id, UpdateGameDto dto)
+    // Update a game by ID
+    [HttpPut("{id}", Name = "UpdateGame")]
+    public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateGameDto dto)
     {
-        var game = await _context.Games.FindAsync(id);
+        _logger.LogInformation("Updating game {id}", id);
+        var game = await _service.GetByIdAsync(id);
         if (game is null)
         {
             return NotFound("Game not found");
-        } 
+        }
 
-        game.Name = dto.Name;
-        game.ReleaseDate = dto.ReleaseDate;
-        game.DeveloperId = dto.DeveloperId;
-        game.PublisherId = dto.PublisherId;
+        _mapper.Map(dto, game);
+        await _service.UpdateAsync(game);
 
-        await _context.SaveChangesAsync();
-
-        return Ok(new GameDto
-        {
-            GameId = game.GameId,
-            Name = game.Name,
-            ReleaseDate = game.ReleaseDate,
-            Developer = (await _context.Companies.FindAsync(dto.DeveloperId))?.Name ?? "Unknown",
-            Publisher = (await _context.Companies.FindAsync(dto.PublisherId))?.Name ?? "Unknown",
-            Platforms = await _context.GamePlatforms
-                .Where(gp => gp.GameId == game.GameId)
-                .Select(gp => gp.Platform.Name)
-                .ToListAsync()
-        });
+        return Ok(_mapper.Map<GameDto>(game));
     }
 
-    // DELETE: delete game
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteGame(int id)
+    // Delete a game by ID
+    [HttpDelete("{id}", Name = "DeleteGame")]
+    public async Task<IActionResult> DeleteAsync(int id)
     {
-        var game = await _context.Games.FindAsync(id);
-        if (game is null) return NotFound("Game not found");
-
-        _context.Games.Remove(game);
-        await _context.SaveChangesAsync();
-
+        _logger.LogInformation("Deleting game {id}", id);
+        var existing = await _service.GetByIdAsync(id);
+        if (existing is null)
+        {
+            return NotFound("Game not found");
+        }
+        await _service.DeleteAsync(id);
         return NoContent();
     }
-    
 }

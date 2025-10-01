@@ -16,22 +16,25 @@ public class UserController : ControllerBase
     private readonly GamesDbContext _context;
     private readonly IMapper _mapper;
 
-    public UserController(GamesDbContext context, IMapper mapper)
+    private readonly UserService _service;
+
+    public UserController(GamesDbContext context, IMapper mapper, UserService service)
     {
         _context = context;
         _mapper = mapper;
-
+        _service = service;
     }
 
     //GET: receive all Users
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
     {
-        var Users = await _context.User.ToListAsync();
+        // var Users = await _context.User.ToListAsync();
+        // _context.User.get
+        // var UserDTOs = _mapper.Map<IEnumerable<UserDto>>(Users);
 
-        var UserDTOs = _mapper.Map<IEnumerable<UserDto>>(Users);
-
-        return Ok(UserDTOs);
+        var Users = await _service.GetAllUsersAsync();
+        return Ok(_mapper.Map<List<User>>(Users));
     }
 
 }

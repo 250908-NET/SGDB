@@ -1,3 +1,4 @@
+using AutoMapper;
 using Games.Controllers;
 using Games.Data;
 using Games.DTOs;
@@ -24,10 +25,14 @@ builder.Services.AddDbContext<GamesDbContext>(options => options.UseSqlServer(CS
 // Repositories
 builder.Services.AddScoped<IGameRepository, GameRepository>();
 builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
-
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Services
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IPlatformService, PlatformService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 // Setup Serilog
 Log.Logger = new LoggerConfiguration()
