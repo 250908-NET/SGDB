@@ -59,8 +59,7 @@ public class GameRepository : IGameRepository
     public async Task<Game?> LinkGameToPlatformAsync(int gameId, int platformId)
     {
         var game = await _context.Games
-            .Include(g => g.GamePlatforms)
-            .ThenInclude(gp => gp.Platform)
+            .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
             .FirstOrDefaultAsync(g => g.GameId == gameId);
 
         if (game == null)

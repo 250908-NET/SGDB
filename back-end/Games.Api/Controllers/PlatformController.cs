@@ -13,12 +13,11 @@ namespace Games.Controllers;
 [Route("api/[controller]")]
 public class PlatformsController : ControllerBase
 {
-    private readonly GamesDbContext _context;
     private readonly ILogger<PlatformsController> _logger;
     private readonly IPlatformService _service;
     private readonly IMapper _mapper;
 
-    public PlatformsController(ILogger<PlatformsController> logger, IPlatformService platformService, IMapper mapper, GamesDbContext context)
+    public PlatformsController(ILogger<PlatformsController> logger, IPlatformService platformService, IMapper mapper)
     {
         _logger = logger;
         _service = platformService;

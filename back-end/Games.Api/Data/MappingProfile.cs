@@ -20,7 +20,14 @@ namespace Games.Data
             CreateMap<UpdateGameDto, Game>();
 
             // Platform mappings
-            CreateMap<Platform, PlatformDto>().ReverseMap();
+            CreateMap<Platform, PlatformDto>()
+                .ForMember(dest => dest.Games,
+                    opt => opt.MapFrom(src =>
+                        src.GamePlatforms != null
+                            ? src.GamePlatforms.Select(gp => gp.Game.Name).ToList()
+                            : new List<string>()
+                    ));
+                    
             CreateMap<CreatePlatformDto, Platform>();
             CreateMap<UpdatePlatformDto, Platform>();
 
