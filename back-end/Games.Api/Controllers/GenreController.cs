@@ -1,22 +1,24 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Genres.Services;
-using Genres.DTOs;
-using Genres.Models;
-using Genres.Data;
+using Games.Services;
+using Games.DTOs;
+using Games.Models;
+using Games.Data;
 
-namespace Genres.Controllers;
+
+namespace Games.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class GenresController : ControllerBase
 {
-    private readonly GenresDbContext _context;
+    private readonly GamesDbContext _context;
     private readonly ILogger<GenresController> _logger;
     private readonly IGenreService _service;
     private readonly IMapper _mapper;
 
-    public GenresController(GenresDbContext context)
+    public GenresController(ILogger<GenresController> logger, IGenreService genreService, IMapper mapper, GamesDbContext context)
     {
         _logger = logger;
         _service = genreService;
