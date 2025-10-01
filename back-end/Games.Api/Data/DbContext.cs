@@ -71,3 +71,4 @@ public class GamesDbContext  : DbContext
             .HasForeignKey(gp => gp.GenreId);
     }
 }
+// adding this to the file to make a change
