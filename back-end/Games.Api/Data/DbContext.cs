@@ -49,9 +49,9 @@ public class GamesDbContext  : DbContext
 
         // Game to Developer
         modelBuilder.Entity<Game>()
-            .HasOne(g => g.Publisher)
-            .WithMany(c => c.PublishedGames)
-            .HasForeignKey(g => g.PublisherId)
+            .HasOne(g => g.Developer)
+            .WithMany(c => c.DevelopedGames)
+            .HasForeignKey(g => g.DeveloperId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Composite Primary Key

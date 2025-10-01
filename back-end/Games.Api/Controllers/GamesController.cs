@@ -101,7 +101,7 @@ public class GamesController : ControllerBase
         if (game is null)
         {
             return NotFound("Game not found");
-        } 
+        }
 
         game.Name = dto.Name;
         game.ReleaseDate = dto.ReleaseDate;
@@ -135,6 +135,39 @@ public class GamesController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+    
+    // POST: Link game to a platform
+    [HttpPost("{gameId}/platforms/{platformId}")]
+    public async Task<IActionResult> LinkGameToPlatform(int gameId, int platformId)
+    {
+        var game = await _context.Games.FindAsync(gameId);
+        if (game is null)
+        {
+            return NotFound("Game not found");
+        }
+
+        var platform = await _context.Platforms.FindAsync(platformId);
+        if (platform is null)
+        {
+            return NotFound("Platform not found");
+        }
+
+
+        var existingLink = await _context.GamePlatforms.FindAsync(gameId, platformId);
+
+        if (existingLink == null)
+        {
+            _context.GamePlatforms.Add(new GamePlatform { GameId = gameId, PlatformId = platformId });
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(new
+        {
+            Message = "Platform linked successfully",
+            Game = game.Name,
+            Platform = platform.Name
+        });
     }
     
 }

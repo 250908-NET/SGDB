@@ -1,4 +1,5 @@
 *.txt
+**/[Mm]igrations/
 
 # User-specific files
 *.rsuser
