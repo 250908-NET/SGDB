@@ -28,8 +28,8 @@ namespace Games.Tests
             result.Should().NotBeNull();
             result.Should().HaveCount(2);
 
-            result.Should().ContainSingle(p => p.Name == "Super Nintendo" && p.Manufacturer == "Nintendo");
-            result.Should().ContainSingle(p => p.Name == "Nintendo DS" && p.Manufacturer == "Nintendo");
+            result.Should().ContainSingle(p => p.Name == "Super Nintendo");
+            result.Should().ContainSingle(p => p.Name == "Nintendo DS");
         }
 
         [Fact]
@@ -44,7 +44,6 @@ namespace Games.Tests
             // Assert
             result.Should().NotBeNull();
             result!.Name.Should().Be("Super Nintendo");
-            result.Manufacturer.Should().Be("Nintendo");
             result.GamePlatforms.Should().NotBeEmpty();
         }
 
@@ -70,8 +69,6 @@ namespace Games.Tests
             var newPlatform = new Platform
             {
                 Name = "Nintendo Switch",
-                Manufacturer = "Nintendo",
-                ReleaseYear = 2017
             };
 
             // Act
@@ -84,7 +81,6 @@ namespace Games.Tests
             var platformInDb = await Context.Platforms.FindAsync(newPlatform.PlatformId);
             platformInDb.Should().NotBeNull();
             platformInDb!.Name.Should().Be("Nintendo Switch");
-            platformInDb.Manufacturer.Should().Be("Nintendo");
         }
 
         [Fact]
@@ -127,8 +123,6 @@ namespace Games.Tests
             var platform = new Platform
             {
                 Name = "Test Console",
-                Manufacturer = "Test Corp",
-                ReleaseYear = 2024
             };
 
             await _repository.AddAsync(platform);
@@ -139,7 +133,6 @@ namespace Games.Tests
             // Assert
             var platformInDb = await Context.Platforms.FirstOrDefaultAsync(p => p.Name == "Test Console");
             platformInDb.Should().NotBeNull();
-            platformInDb!.Manufacturer.Should().Be("Test Corp");
         }
 
         [Fact]
@@ -149,8 +142,6 @@ namespace Games.Tests
             var platform = new Platform
             {
                 Name = "Uncommitted Console",
-                Manufacturer = "Test Corp",
-                ReleaseYear = 2024
             };
 
             await _repository.AddAsync(platform);
