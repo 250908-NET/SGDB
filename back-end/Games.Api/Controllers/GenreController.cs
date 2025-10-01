@@ -1,119 +1,86 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Games.Services;
-using Games.DTOs;
-using Games.Models;
-using Games.Data;
+using Genres.Services;
+using Genres.DTOs;
+using Genres.Models;
+using Genres.Data;
 
-namespace Games.Controllers;
+namespace Genres.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class GenresController : ControllerBase
 {
-    private readonly GamesDbContext _context;
+    private readonly GenresDbContext _context;
+    private readonly ILogger<GenresController> _logger;
+    private readonly IGenreService _service;
+    private readonly IMapper _mapper;
 
-    public GenresController(GamesDbContext context)
+    public GenresController(GenresDbContext context)
     {
-        _context = context;
+        _logger = logger;
+        _service = genreService;
+        _mapper = mapper;
     }
-    
-    // GET: receive all platforms
-    [HttpGet]
+
+    // GET: receive all genres
+    [HttpGet(Name = "GetAllGenres")]
     public async Task<ActionResult<IEnumerable<GenreDto>>> GetGenres()
     {
-        var platforms = await _context.Genres
-            .Include(p => p.GameGenres)
-            .ThenInclude(gp => gp.Game)
-            .ToListAsync();
-
-        var result = platforms.Select(p => new GenreDto
-        {
-            GenreId = p.GenreId,
-            Name = p.Name,
-            Games = p.GameGenres.Select(gp => gp.Game.Name).ToList()
-        });
-
-        return Ok(result);
+        _logger.LogInformation("Getting all genres");
+        var genres = await _service.GetAllAsync();
+        return Ok(_mapper.Map<List<GenreDto>>(genres));
     }
 
-    // GET: receive platform by id
-    [HttpGet("{id}")]
+    // GET: receive genre by id
+    [HttpGet("{id}", Name = "GetGenreById")]
     public async Task<ActionResult<GenreDto>> GetGenre(int id)
     {
-        var platform = await _context.Genres
-            .Include(p => p.GameGenres)
-            .ThenInclude(gp => gp.Game)
-            .FirstOrDefaultAsync(p => p.GenreId == id);
-
-        if (platform is null)
+        _logger.LogInformation("Getting genre {id}", id);
+        var genre = await _service.GetByIdAsync(id);
+        if (genre is null)
             return NotFound("Genre not found");
-
-        var result = new GenreDto
-        {
-            GenreId = platform.GenreId,
-            Name = platform.Name,
-            Games = platform.GameGenres.Select(gp => gp.Game.Name).ToList()
-        };
-
-        return Ok(result);
+        return Ok(_mapper.Map<GenreDto>(genre));
     }
 
-    // POST: create new platform
-    [HttpPost]
+    // POST: create new genre
+    [HttpPost(Name = "CreateGenre")]
     public async Task<ActionResult<GenreDto>> CreateGenre(CreateGenreDto dto)
     {
-        var platform = new Genre
-        {
-            Name = dto.Name
-        };
-
-        _context.Genres.Add(platform);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetGenre), new { id = platform.GenreId }, new GenreDto
-        {
-            GenreId = platform.GenreId,
-            Name = platform.Name,
-            Games = new List<string>()
-        });
+        _logger.LogInformation("Creating genre {@dto}", dto);
+        var genre = _mapper.Map<Genre>(dto);
+        await _service.CreateAsync(genre);
+        return Created($"/api/genres/{genre.GenreId}", _mapper.Map<GenreDto>(genre));
     }
 
-    // PUT: update platform
-    [HttpPut("{id}")]
+    // PUT: update genre
+    [HttpPut("{id}", Name = "UpdateGenre")]
     public async Task<IActionResult> UpdateGenre(int id, UpdateGenreDto dto)
     {
-        var platform = await _context.Genres.FindAsync(id);
-        if (platform is null)
+        _logger.LogInformation("Updating genre {id}", id);
+        var genre = await _service.GetByIdAsync(id);
+        if (genre is null)
         {
             return NotFound("Genre not found");
         }
 
-        platform.Name = dto.Name;
+        _mapper.Map(dto, genre);
+        await _service.UpdateAsync(genre);
 
-        await _context.SaveChangesAsync();
-
-        return Ok(new GenreDto
-        {
-            GenreId = platform.GenreId,
-            Name = platform.Name,
-            Games = await _context.GameGenres
-                .Where(gp => gp.GenreId == platform.GenreId)
-                .Select(gp => gp.Game.Name)
-                .ToListAsync()
-        });
+        return Ok(_mapper.Map<GenreDto>(genre));
     }
 
-    // DELETE: delete platform
-    [HttpDelete("{id}")]
+    // DELETE: delete genre
+    [HttpDelete("{id}", Name = "DeleteGenre")]
     public async Task<IActionResult> DeleteGenre(int id)
     {
-        var platform = await _context.Genres.FindAsync(id);
-        if (platform is null) return NotFound("Genre not found");
-
-        _context.Genres.Remove(platform);
-        await _context.SaveChangesAsync();
-
+        _logger.LogInformation("Deleting genre {id}", id);
+        var existing = await _service.GetByIdAsync(id);
+        if (existing is null)
+        {
+            return NotFound("Genre not found");
+        }
+        await _service.DeleteAsync(id);
         return NoContent();
     }
 }
