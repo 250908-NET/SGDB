@@ -14,8 +14,7 @@ public class GamesDbContext  : DbContext
     public DbSet<Platform> Platforms { get; set; } = null!;
     public DbSet<GamePlatform> GamePlatforms { get; set; } = null!;
     public DbSet<Company> Companies { get; set; } = null!;
-    public DbSet<Rating> Ratings { get; set; }
-
+    public DbSet<Rating> Ratings { get; set; } = null!;
 
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)

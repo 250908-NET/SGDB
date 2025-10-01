@@ -6,9 +6,7 @@ namespace Games.Models;
 
 public class Rating
 {
-    [ForeignKey("Game")]
     public int GameID { get; set; }
-    [ForeignKey("User")]
     public int UserID { get; set; }
 
     [Required]
@@ -23,6 +21,8 @@ public class Rating
     public DateTime DateTimeRated { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public Game Game { get; set; }
-    public User User { get; set; }
+    [ForeignKey("GameID")]
+    public Game Game { get; set; } = null!;
+    [ForeignKey("UserID")]
+    public User User { get; set; } = null!;
 }

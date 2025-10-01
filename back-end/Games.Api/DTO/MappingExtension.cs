@@ -12,14 +12,14 @@ public static class MappingExtensions
         {
             GameId = game.GameId,
             Name = game.Name,
-            Developer = game.Developer?.Name ?? string.Empty,
-            Publisher = game.Publisher?.Name ?? string.Empty,
+            PublisherId = game.PublisherId,
+            DeveloperId = game.DeveloperId,
             //Platforms = game.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
             Platforms = game.GamePlatforms?.Select(gp => gp.Platform.Name).ToList() ?? new List<string>()
         };
     }
 
-    // PLATFORM
+    // PLATFORM TBD
     public static PlatformDto ToDto(this Platform platform)
     {
         return new PlatformDto

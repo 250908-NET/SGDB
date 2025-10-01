@@ -1,3 +1,4 @@
+using AutoMapper;
 using Games.Controllers;
 using Games.Data;
 using Games.DTOs;
@@ -28,6 +29,9 @@ builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
 // Services
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IPlatformService, PlatformService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 // Setup Serilog
 Log.Logger = new LoggerConfiguration()
