@@ -18,6 +18,7 @@ public class GamesDbContext  : DbContext
     public DbSet<Genre> Genres { get; set; } = null!;
     public DbSet<GameGenre> GameGenres { get; set; } = null!;
     public DbSet<Rating> Ratings { get; set; } = null!;
+    public DbSet<User> Users { get; set; }
 
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)
