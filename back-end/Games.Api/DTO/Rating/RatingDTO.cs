@@ -4,6 +4,6 @@ public class RatingDto
     public int UserID { get; set; }
     public string Title { get; set; }
     public string? Description { get; set; }
-    public int Rating { get; set; }
+    public int Rate { get; set; }
     public DateTime DateTimeRated { get; set; }
 }

@@ -28,5 +28,6 @@ public class Game
 
     // Many to many relationship
     public ICollection<GamePlatform> GamePlatforms { get; set; } = new List<GamePlatform>();
+    public ICollection<GameGenre> GameGenres { get; set; } = new List<GameGenre>();
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
 }
