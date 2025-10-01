@@ -9,7 +9,13 @@ namespace Games.Data
         public MappingProfile()
         {
             // Game mappings
-            CreateMap<Game, GameDto>().ReverseMap();
+            CreateMap<Game, GameDto>()
+                .ForMember(dest => dest.Platforms,
+                    opt => opt.MapFrom(src =>
+                        src.GamePlatforms != null
+                            ? src.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
+                            : new List<string>()
+                    ));
             CreateMap<CreateGameDto, Game>();
             CreateMap<UpdateGameDto, Game>();
 
