@@ -11,10 +11,14 @@ namespace Games.Controllers;
 public class CompanyController : ControllerBase
 {
     private readonly GamesDbContext _context;
+    private readonly ILogger<GamesController> _logger;
+
 
     public CompanyController(GamesDbContext context)
     {
+        //_logger = logger;
         _context = context;
+        //_service = service;
     }
 
     // GET: /Company

@@ -15,14 +15,19 @@ public class GameRepository : IGameRepository
 
     public async Task<List<Game>> GetAllAsync()
     {
-        return await _context.Games.ToListAsync();
+        return await _context.Games
+            .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+            .Include(g => g.Developer)
+            .Include(g => g.Publisher)
+            .ToListAsync();
     }
 
     public async Task<Game?> GetByIdAsync(int id)
     {
         return await _context.Games
-            .Include(g => g.GamePlatforms)
-            .ThenInclude(gc => gc.Platform)
+            .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+            .Include(g => g.Developer)
+            .Include(g => g.Publisher)
             .FirstOrDefaultAsync(g => g.GameId == id);
     }
 
@@ -49,5 +54,15 @@ public class GameRepository : IGameRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    public async Task LinkGameToPlatformAsync(int gameId, int platformId)
+    {
+        var existingLink = await _context.GamePlatforms.FindAsync(gameId, platformId);
+        if (existingLink == null)
+        {
+            _context.GamePlatforms.Add(new GamePlatform { GameId = gameId, PlatformId = platformId });
+            await _context.SaveChangesAsync();
+        }
     }
 }
