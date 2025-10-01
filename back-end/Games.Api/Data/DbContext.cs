@@ -57,19 +57,17 @@ public class GamesDbContext  : DbContext
             .WithMany(c => c.DevelopedGames)
             .HasForeignKey(g => g.DeveloperId)
             .OnDelete(DeleteBehavior.Restrict);
-    }
-}
-// adding this to the file to make a change
-
         
         // Game to Genre
-        // modelBuilder.Entity<GameGenre>()
-        //     .HasOne(gp => gp.Game)
-        //     .WithMany(g => g.GameGenres)
-        //     .HasForeignKey(gp => gp.GameId);
+        modelBuilder.Entity<GameGenre>()
+            .HasOne(gp => gp.Game)
+            .WithMany(g => g.GameGenres)
+            .HasForeignKey(gp => gp.GameId);
 
-        // // Genre to Game
-        // modelBuilder.Entity<GameGenre>()
-        //     .HasOne(gp => gp.Genre)
-        //     .WithMany(p => p.GameGenres)
-        //     .HasForeignKey(gp => gp.GenreId);
+        // Genre to Game
+        modelBuilder.Entity<GameGenre>()
+            .HasOne(gp => gp.Genre)
+            .WithMany(p => p.GameGenres)
+            .HasForeignKey(gp => gp.GenreId);
+    }
+}
