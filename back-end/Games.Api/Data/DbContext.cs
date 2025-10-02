@@ -74,7 +74,7 @@ public class GamesDbContext  : DbContext
 
         // Rating Composite Primary Key
         modelBuilder.Entity<Rating>()
-            .HasKey(r => new { r.UserID, r.GameID });
+            .HasKey(r => new { r.UserId, r.GameId });
 
         // Rating -> Game (many-to-one)
         modelBuilder.Entity<Rating>()
