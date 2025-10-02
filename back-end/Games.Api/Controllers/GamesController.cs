@@ -13,12 +13,12 @@ namespace Games.Controllers;
 [Route("api/[controller]")]
 public class GamesController : ControllerBase
 {
-    private readonly GamesDbContext _context;
+    //private readonly GamesDbContext _context;
     private readonly ILogger<GamesController> _logger;
     private readonly IGameService _service;
     private readonly IMapper _mapper;
 
-    public GamesController(ILogger<GamesController> logger, IGameService gameService, IMapper mapper, GamesDbContext context)
+    public GamesController(ILogger<GamesController> logger, IGameService gameService, IMapper mapper)
     {
         _logger = logger;
         _service = gameService;
@@ -85,4 +85,16 @@ public class GamesController : ControllerBase
         await _service.DeleteAsync(id);
         return NoContent();
     }
+
+    [HttpPost("{gameId}/platforms/{platformId}")]
+    public async Task<IActionResult> LinkGameToPlatform(int gameId, int platformId)
+    {
+        var game = await _service.LinkGameToPlatformAsync(gameId, platformId);
+
+        if (game == null)
+            return NotFound("Game or Platform not found");
+
+        return Ok(_mapper.Map<GameDto>(game));
+    }
+
 }

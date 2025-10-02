@@ -15,12 +15,18 @@ public class PlatformRepository : IPlatformRepository
 
     public async Task<List<Platform>> GetAllAsync()
     {
-        return await _context.Platforms.ToListAsync();
+        return await _context.Platforms
+            .Include(p => p.GamePlatforms)
+            .ThenInclude(gp => gp.Game)
+            .ToListAsync();
     }
 
     public async Task<Platform?> GetByIdAsync(int id)
     {
-        return await _context.Platforms.FirstOrDefaultAsync(c => c.PlatformId == id);
+        return await _context.Platforms
+            .Include(p => p.GamePlatforms)
+            .ThenInclude(gp => gp.Game)
+            .FirstOrDefaultAsync(p => p.PlatformId == id);
     }
 
     public async Task AddAsync(Platform Platform)
