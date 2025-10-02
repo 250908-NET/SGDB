@@ -9,4 +9,5 @@ public class GameDto
     public int DeveloperId { get; set; }   // FK to Company
     
     public List<string> Platforms { get; set; } = new();
+    public List<string> Genres { get; set; } = new();
 }
