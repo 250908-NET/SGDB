@@ -23,8 +23,8 @@ namespace Games.Tests.Services
             // Arrange
             var expectedPlatforms = new List<Platform>
             {
-                new Platform { PlatformId = 1, Name = "PlayStation 5", Manufacturer = "Sony", ReleaseYear = 2020 },
-                new Platform { PlatformId = 2, Name = "Xbox Series X", Manufacturer = "Microsoft", ReleaseYear = 2020 }
+                new Platform { PlatformId = 1},
+                new Platform { PlatformId = 2},
             };
 
             _mockRepository.Setup(repo => repo.GetAllAsync())
@@ -49,8 +49,6 @@ namespace Games.Tests.Services
             {
                 PlatformId = 1,
                 Name = "PlayStation 5",
-                Manufacturer = "Sony",
-                ReleaseYear = 2020
             };
 
             _mockRepository.Setup(repo => repo.GetByIdAsync(1))
@@ -84,7 +82,7 @@ namespace Games.Tests.Services
         public async Task CreateAsync_ShouldAddPlatform()
         {
             // Arrange
-            var inputPlatform = new Platform { Name = "Nintendo Switch", Manufacturer = "Nintendo", ReleaseYear = 2017 };
+            var inputPlatform = new Platform { Name = "Nintendo Switch" };
 
             _mockRepository.Setup(repo => repo.AddAsync(inputPlatform))
                            .Returns(Task.CompletedTask);
@@ -101,7 +99,7 @@ namespace Games.Tests.Services
         public async Task UpdateAsync_ShouldCallRepositoryUpdate()
         {
             // Arrange
-            var updatedPlatform = new Platform { PlatformId = 1, Name = "Updated Console", Manufacturer = "Updated Manufacturer", ReleaseYear = 2025 };
+            var updatedPlatform = new Platform { PlatformId = 1, Name = "Updated Console" };
 
             _mockRepository.Setup(repo => repo.UpdateAsync(updatedPlatform))
                            .Returns(Task.CompletedTask);
@@ -129,7 +127,7 @@ namespace Games.Tests.Services
             _mockRepository.Verify(repo => repo.DeleteAsync(platformId), Times.Once);
             _mockRepository.Verify(repo => repo.SaveChangesAsync(), Times.Once);
         }
-        
+
         [Fact]
         public void Constructor_WithNullRepository_ShouldThrow()
         {
@@ -140,6 +138,6 @@ namespace Games.Tests.Services
             act.Should().Throw<ArgumentNullException>();
         }
 
-        
+
     }
 }
