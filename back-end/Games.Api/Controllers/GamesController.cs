@@ -17,13 +17,15 @@ public class GamesController : ControllerBase
     private readonly ILogger<GamesController> _logger;
     private readonly IGameService _service;
     private readonly IPlatformService _platformService;
+    private readonly IGenreService _genreService;
     private readonly IMapper _mapper;
 
-    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IMapper mapper)
+    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IGenreService genreService, IMapper mapper)
     {
         _logger = logger;
         _service = gameService;
         _platformService = platformService;
+        _genreService = genreService;
         _mapper = mapper;
     }
 
@@ -186,6 +188,108 @@ public class GamesController : ControllerBase
         }
 
         await _service.UnlinkGameFromPlatformAsync(gameId, platformId);
+        return NoContent();
+    }
+
+    
+    // Link game to genre
+    [HttpPost("{gameId}/genres/{genreId}")]
+    public async Task<IActionResult> LinkGameToGenre(int gameId, int genreId)
+    {
+        _logger.LogInformation("Linking game {gameId} to genre {genreId}", gameId, genreId);
+
+        // Check to see if game exists
+        var game = await _service.GetByIdAsync(gameId);
+        if (game is null)
+        {
+            return NotFound($"Game with ID {gameId} not found.");
+        }
+
+        // Check to see if genre exists
+        var genre = await _genreService.GetByIdAsync(genreId);
+        if (genre is null)
+        {
+            return NotFound($"Genre with ID {genreId} not found.");
+        }
+
+        // Check if already linked
+        if (game.GameGenres.Any(gp => gp.GenreId == genreId))
+        {
+            return BadRequest("This game is already linked to that genre.");
+        }
+        await _service.LinkGameToGenreAsync(gameId, genreId);
+        return Ok(new { Message = "Linked successfully", GameId = gameId, GenreId = genreId });
+    }
+
+    // Update link
+    [HttpPut("{gameId}/genres/{oldGenreId}/{newGenreId}")]
+    public async Task<IActionResult> UpdateGameGenre(int gameId, int oldGenreId, int newGenreId)
+    {
+        _logger.LogInformation("Update linking game {gameId} from genre {oldGenreId} to genre {newGenreId}", gameId, oldGenreId, newGenreId);
+
+        // Check to see if game exists
+        var game = await _service.GetByIdAsync(gameId);
+        if (game is null)
+        {
+            return NotFound($"Game with ID {gameId} not found.");
+        }
+
+        // Check to see if old genre exists
+        var oldGenre = await _genreService.GetByIdAsync(oldGenreId);
+        if (oldGenre is null)
+        {
+            return NotFound($"Old Genre with ID {oldGenreId} not found.");
+        }
+
+        // Check to see if new genre exists
+        var newGenre = await _genreService.GetByIdAsync(newGenreId);
+        if (newGenre is null)
+        {
+            return NotFound($"New Genre with ID {newGenreId} not found.");
+        }
+
+        // Ensure game is currently linked to oldGenre
+        if (!game.GameGenres.Any(gp => gp.GenreId == oldGenreId))
+        {
+            return BadRequest("This game is not linked to the old genre.");
+        }
+
+        // Ensure game not already linked to newGenre
+        if (game.GameGenres.Any(gp => gp.GenreId == newGenreId))
+        {
+            return BadRequest("This game is already linked to the new genre.");
+        }
+
+        await _service.UpdateGameGenreAsync(gameId, oldGenreId, newGenreId);
+        return Ok(new { Message = "Link updated successfully", GameId = gameId, NewGenreId = newGenreId });
+    }
+
+    // Unlink
+    [HttpDelete("{gameId}/genres/{genreId}")]
+    public async Task<IActionResult> DeleteGameGenre(int gameId, int genreId)
+    {
+        _logger.LogInformation("Unlinking game {gameId} from genre {genreId}", gameId, genreId);
+        // Check to see if game exists
+        var game = await _service.GetByIdAsync(gameId);
+        if (game is null)
+        {
+            return NotFound($"Game with ID {gameId} not found.");
+        }
+
+        // Check to see if genre exists
+        var genre = await _genreService.GetByIdAsync(genreId);
+        if (genre is null)
+        {
+            return NotFound($"Genre with ID {genreId} not found.");
+        }
+
+        // Check if link actually exists
+        if (!game.GameGenres.Any(gp => gp.GenreId == genreId))
+        {
+            return BadRequest("This game is not linked to that genre.");
+        }
+
+        await _service.UnlinkGameFromGenreAsync(gameId, genreId);
         return NoContent();
     }
 

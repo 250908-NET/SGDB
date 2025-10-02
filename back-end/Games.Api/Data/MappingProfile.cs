@@ -9,11 +9,24 @@ namespace Games.Data
         public MappingProfile()
         {
             // Game mappings
+            // CreateMap<Game, GameDto>()
+            //     .ForMember(dest => dest.Platforms,
+            //         opt => opt.MapFrom(src =>
+            //             src.GamePlatforms != null
+            //                 ? src.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
+            //                 : new List<string>()
+            //         ));
             CreateMap<Game, GameDto>()
                 .ForMember(dest => dest.Platforms,
                     opt => opt.MapFrom(src =>
                         src.GamePlatforms != null
                             ? src.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
+                            : new List<string>()
+                    ))
+                .ForMember(dest => dest.Genres,
+                    opt => opt.MapFrom(src =>
+                        src.GameGenres != null
+                            ? src.GameGenres.Select(gg => gg.Genre.Name).ToList()
                             : new List<string>()
                     ));
             CreateMap<CreateGameDto, Game>();
