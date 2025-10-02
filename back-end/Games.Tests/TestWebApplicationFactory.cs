@@ -16,7 +16,7 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             services.RemoveAll<DbContextOptions<GamesDbContext>>();
             services.RemoveAll<GamesDbContext>();
             services.AddDbContext<GamesDbContext>(options =>
-                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                options.UseInMemoryDatabase(databaseName: "testDb")
             );
         });
 
