@@ -74,19 +74,19 @@ public class GamesDbContext  : DbContext
 
         // Rating Composite Primary Key
         modelBuilder.Entity<Rating>()
-            .HasKey(r => new { r.UserID, r.GameID });
+            .HasKey(r => new { r.UserId, r.GameId });
 
         // Rating -> Game (many-to-one)
         modelBuilder.Entity<Rating>()
             .HasOne(r => r.Game)
             .WithMany(g => g.Ratings)
-            .HasForeignKey(r => r.GameID);
+            .HasForeignKey(r => r.GameId);
 
         // Rating -> User (many-to-one)
         modelBuilder.Entity<Rating>()
             .HasOne(r => r.User)
             .WithMany(u => u.Ratings)
-            .HasForeignKey(r => r.UserID);
+            .HasForeignKey(r => r.UserId);
 
         modelBuilder.Entity<Rating>()
             .Property(r => r.Title)
