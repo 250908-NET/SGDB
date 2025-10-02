@@ -1,12 +1,13 @@
 using Games.Data;
+using Games.DTOs;
 using Games.Models;
-interface IUserRepository
+public interface IUserRepository
 {
     public Task<List<User>> GetAllAsync();
 
     public Task<User> GetUserByIDAsync();
 
-    public Task<User> AddUserAsync();
+    public Task<User> AddUserAsync(CreateUserDto dto);
 
     public Task<User> ChangeUserAsync();
 

@@ -6,8 +6,8 @@ namespace Games.Services;
 
 public class UserService : IUserService
 {
-    private UserRepository _userRepo;
-    public UserService(UserRepository userRepo)
+    private IUserRepository _userRepo;
+    public UserService(IUserRepository userRepo)
     {
         _userRepo = userRepo;
     }
@@ -20,9 +20,9 @@ public class UserService : IUserService
     {
         return _userRepo.GetUserByIDAsync();
     }
-    public Task<User> CreateUserAsync(UserDto Dto)
+    public Task<User> CreateUserAsync(CreateUserDto Dto)
     {
-        return _userRepo.AddUserAsync();
+        return _userRepo.AddUserAsync(Dto);
     }
     public Task<User> UpdateUserAsync(UserDto Dto)
     {

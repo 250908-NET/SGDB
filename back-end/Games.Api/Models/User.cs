@@ -8,10 +8,15 @@ public class User
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int UserID { get; set; }
+    public int UserId { get; set; }
 
     [Required]
     public string username { get; set; } = string.Empty;
+    public string role { get; set; } = string.Empty;
     public ICollection<Game> GameLibrary { get; set; } = new List<Game>();
 
+    public static implicit operator List<object>(User v)
+    {
+        throw new NotImplementedException();
+    }
 }
