@@ -32,7 +32,19 @@ namespace Games.Data
             CreateMap<UpdatePlatformDto, Platform>();
 
             // Company mappings
-            CreateMap<Company, CompanyDto>().ReverseMap();
+            CreateMap<Company, CompanyDto>()
+                .ForMember(dest => dest.DevelopedGames,
+                    opt => opt.MapFrom(src =>
+                        src.DevelopedGames != null
+                            ? src.DevelopedGames.Select(g => g.Name).ToList()
+                            : new List<string>()
+                    ))
+                .ForMember(dest => dest.PublishedGames,
+                    opt => opt.MapFrom(src =>
+                        src.PublishedGames != null
+                            ? src.PublishedGames.Select(g => g.Name).ToList()
+                            : new List<string>()
+                    ));
             CreateMap<CreateCompanyDto, Company>();
             CreateMap<UpdateCompanyDto, Company>();
 
