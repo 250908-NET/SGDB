@@ -25,7 +25,9 @@ public static class MappingExtensions
             PublisherId = game.PublisherId,
             DeveloperId = game.DeveloperId,
             //Platforms = game.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
-            Platforms = game.GamePlatforms?.Select(gp => gp.Platform.Name).ToList() ?? new List<string>()
+            Platforms = game.GamePlatforms != null
+                    ? game.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
+                    : new List<string>()
         };
     }
 
@@ -36,9 +38,7 @@ public static class MappingExtensions
         {
             PlatformId = platform.PlatformId,
             Name = platform.Name,
-            Games = platform.GamePlatforms?
-                .Select(gp => gp.Game.Name)
-                .ToList() ?? new List<string>()
+            Games = platform.GamePlatforms?.Select(gp => gp.Game.Name).ToList() ?? new List<string>()
         };
     }
 
@@ -54,6 +54,19 @@ public static class MappingExtensions
                 .ToList() ?? new List<string>(),
             PublishedGames = company.PublishedGames?
                 .Select(g => g.Name)
+                .ToList() ?? new List<string>()
+        };
+    }
+
+    // GENRE
+    public static GenreDto ToDto(this Genre genre)
+    {
+        return new GenreDto
+        {
+            GenreId = genre.GenreId,
+            Name = genre.Name,
+            Games = genre.GameGenres?
+                .Select(gp => gp.Game.Name)
                 .ToList() ?? new List<string>()
         };
     }

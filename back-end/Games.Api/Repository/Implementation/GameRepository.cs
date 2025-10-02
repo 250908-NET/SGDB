@@ -59,10 +59,36 @@ public class GameRepository : IGameRepository
     public async Task LinkGameToPlatformAsync(int gameId, int platformId)
     {
         var existingLink = await _context.GamePlatforms.FindAsync(gameId, platformId);
+
+        // Create new link if doesn't exist
         if (existingLink == null)
         {
             _context.GamePlatforms.Add(new GamePlatform { GameId = gameId, PlatformId = platformId });
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId)
+    {
+        var updateLink = await _context.GamePlatforms.FindAsync(gameId, oldPlatformId);
+        if (updateLink != null)
+        {
+            _context.GamePlatforms.Remove(updateLink);
+            _context.GamePlatforms.Add(new GamePlatform { GameId = gameId, PlatformId = newPlatformId });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UnlinkGameFromPlatformAsync(int gameId, int platformId)
+    {
+        var link = await _context.GamePlatforms.FindAsync(gameId, platformId);
+        if (link != null)
+        {
+            _context.GamePlatforms.Remove(link);
+            await _context.SaveChangesAsync();
+        }
+    }
+        
+
+
 }

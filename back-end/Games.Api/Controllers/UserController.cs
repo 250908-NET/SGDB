@@ -15,14 +15,16 @@ public class UserController : ControllerBase
 {
     private readonly GamesDbContext _context;
     private readonly IMapper _mapper;
+    private readonly ILogger<UserController> _logger;
 
     private readonly IUserService _service;
 
-    public UserController(GamesDbContext context, IMapper mapper, IUserService service)
+    public UserController(ILogger<UserController> logger, GamesDbContext context, IMapper mapper, IUserService service)
     {
         _context = context;
         _mapper = mapper;
         _service = service;
+        _logger = logger;
     }
 
     //GET: receive all Users
@@ -43,3 +45,5 @@ public class UserController : ControllerBase
     }
 
 }
+
+

@@ -10,5 +10,8 @@ public interface IGameRepository
     Task UpdateAsync(Game game);
     Task DeleteAsync(int id);
     Task SaveChangesAsync();
+
     Task LinkGameToPlatformAsync(int gameId, int platformId);
+    Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId);
+    Task UnlinkGameFromPlatformAsync(int gameId, int platformId);
 }

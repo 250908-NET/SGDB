@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Games.Services;
@@ -7,113 +8,80 @@ using Games.Data;
 
 namespace Games.Controllers;
 
+
 [ApiController]
 [Route("api/[controller]")]
 public class PlatformsController : ControllerBase
 {
-    private readonly GamesDbContext _context;
+    private readonly ILogger<PlatformsController> _logger;
+    private readonly IPlatformService _service;
+    private readonly IMapper _mapper;
 
-    public PlatformsController(GamesDbContext context)
+    public PlatformsController(ILogger<PlatformsController> logger, IPlatformService platformService, IMapper mapper)
     {
-        _context = context;
+        _logger = logger;
+        _service = platformService;
+        _mapper = mapper;
     }
-    
+
     // GET: receive all platforms
-    [HttpGet]
+    [HttpGet(Name = "GetAllPlatforms")]
     public async Task<ActionResult<IEnumerable<PlatformDto>>> GetPlatforms()
     {
-        var platforms = await _context.Platforms
-            .Include(p => p.GamePlatforms)
-            .ThenInclude(gp => gp.Game)
-            .ToListAsync();
-
-        var result = platforms.Select(p => new PlatformDto
-        {
-            PlatformId = p.PlatformId,
-            Name = p.Name,
-            Games = p.GamePlatforms.Select(gp => gp.Game.Name).ToList()
-        });
-
-        return Ok(result);
+        _logger.LogInformation("Getting all platforms");
+        var platforms = await _service.GetAllAsync();
+        return Ok(_mapper.Map<List<PlatformDto>>(platforms));
     }
 
     // GET: receive platform by id
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetPlatformById")]
     public async Task<ActionResult<PlatformDto>> GetPlatform(int id)
     {
-        var platform = await _context.Platforms
-            .Include(p => p.GamePlatforms)
-            .ThenInclude(gp => gp.Game)
-            .FirstOrDefaultAsync(p => p.PlatformId == id);
-
+        _logger.LogInformation("Getting platform {id}", id);
+        var platform = await _service.GetByIdAsync(id);
         if (platform is null)
             return NotFound("Platform not found");
-
-        var result = new PlatformDto
-        {
-            PlatformId = platform.PlatformId,
-            Name = platform.Name,
-            Games = platform.GamePlatforms.Select(gp => gp.Game.Name).ToList()
-        };
-
-        return Ok(result);
+        return Ok(_mapper.Map<PlatformDto>(platform));
     }
 
     // POST: create new platform
-    [HttpPost]
+    [HttpPost(Name = "CreatePlatform")]
     public async Task<ActionResult<PlatformDto>> CreatePlatform(CreatePlatformDto dto)
     {
-        var platform = new Platform
-        {
-            Name = dto.Name
-        };
-
-        _context.Platforms.Add(platform);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetPlatform), new { id = platform.PlatformId }, new PlatformDto
-        {
-            PlatformId = platform.PlatformId,
-            Name = platform.Name,
-            Games = new List<string>()
-        });
+        _logger.LogInformation("Creating platform {@dto}", dto);
+        var platform = _mapper.Map<Platform>(dto);
+        await _service.CreateAsync(platform);
+        return Created($"/api/platforms/{platform.PlatformId}", _mapper.Map<PlatformDto>(platform));
     }
 
     // PUT: update platform
-    [HttpPut("{id}")]
+    [HttpPut("{id}", Name = "UpdatePlatform")]
     public async Task<IActionResult> UpdatePlatform(int id, UpdatePlatformDto dto)
     {
-        var platform = await _context.Platforms.FindAsync(id);
+        _logger.LogInformation("Updating platform {id}", id);
+        var platform = await _service.GetByIdAsync(id);
         if (platform is null)
         {
             return NotFound("Platform not found");
         }
 
-        platform.Name = dto.Name;
+        _mapper.Map(dto, platform);
+        await _service.UpdateAsync(platform);
 
-        await _context.SaveChangesAsync();
-
-        return Ok(new PlatformDto
-        {
-            PlatformId = platform.PlatformId,
-            Name = platform.Name,
-            Games = await _context.GamePlatforms
-                .Where(gp => gp.PlatformId == platform.PlatformId)
-                .Select(gp => gp.Game.Name)
-                .ToListAsync()
-        });
+        return Ok(_mapper.Map<PlatformDto>(platform));
     }
 
     // DELETE: delete platform
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}", Name = "DeletePlatform")]
     public async Task<IActionResult> DeletePlatform(int id)
     {
-        var platform = await _context.Platforms.FindAsync(id);
-        if (platform is null) return NotFound("Platform not found");
-
-        _context.Platforms.Remove(platform);
-        await _context.SaveChangesAsync();
-
+        _logger.LogInformation("Deleting platform {id}", id);
+        var existing = await _service.GetByIdAsync(id);
+        if (existing is null)
+        {
+            return NotFound("Platform not found");
+        }
+        await _service.DeleteAsync(id);
         return NoContent();
     }
 }

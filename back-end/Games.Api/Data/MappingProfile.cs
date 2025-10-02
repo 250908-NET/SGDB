@@ -9,12 +9,25 @@ namespace Games.Data
         public MappingProfile()
         {
             // Game mappings
-            CreateMap<Game, GameDto>().ReverseMap();
+            CreateMap<Game, GameDto>()
+                .ForMember(dest => dest.Platforms,
+                    opt => opt.MapFrom(src =>
+                        src.GamePlatforms != null
+                            ? src.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
+                            : new List<string>()
+                    ));
             CreateMap<CreateGameDto, Game>();
             CreateMap<UpdateGameDto, Game>();
 
             // Platform mappings
-            CreateMap<Platform, PlatformDto>().ReverseMap();
+            CreateMap<Platform, PlatformDto>()
+                .ForMember(dest => dest.Games,
+                    opt => opt.MapFrom(src =>
+                        src.GamePlatforms != null
+                            ? src.GamePlatforms.Select(gp => gp.Game.Name).ToList()
+                            : new List<string>()
+                    ));
+                    
             CreateMap<CreatePlatformDto, Platform>();
             CreateMap<UpdatePlatformDto, Platform>();
 
@@ -22,6 +35,14 @@ namespace Games.Data
             CreateMap<Company, CompanyDto>().ReverseMap();
             CreateMap<CreateCompanyDto, Company>();
             CreateMap<UpdateCompanyDto, Company>();
+
+            //Rating mappings
+            CreateMap<Rating, RatingDto>().ReverseMap();
+
+            // Genre mappings
+            CreateMap<Genre, GenreDto>().ReverseMap();
+            CreateMap<CreateGenreDto, Genre>();
+            CreateMap<UpdateGenreDto, Genre>();
         }
     }
 }

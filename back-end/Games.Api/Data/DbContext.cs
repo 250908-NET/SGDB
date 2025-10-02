@@ -17,6 +17,8 @@ public class GamesDbContext : DbContext
     public DbSet<Company> Companies { get; set; } = null!;
     public DbSet<Genre> Genres { get; set; } = null!;
     public DbSet<GameGenre> GameGenres { get; set; } = null!;
+    public DbSet<Rating> Ratings { get; set; } = null!;
+    public DbSet<User> Users { get; set; }
 
 
 
@@ -73,9 +75,28 @@ public class GamesDbContext : DbContext
             .WithMany(p => p.GameGenres)
             .HasForeignKey(gp => gp.GenreId);
 
-        //User to game
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.GameLibrary)
-            .WithMany(g => g.UsersList);
+        // Rating Composite Primary Key
+        modelBuilder.Entity<Rating>()
+            .HasKey(r => new { r.UserId, r.GameId });
+
+        // Rating -> Game (many-to-one)
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.Game)
+            .WithMany(g => g.Ratings)
+            .HasForeignKey(r => r.GameId);
+
+        // Rating -> User (many-to-one)
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Ratings)
+            .HasForeignKey(r => r.UserId);
+
+        modelBuilder.Entity<Rating>()
+            .Property(r => r.Title)
+            .IsRequired();
+
+        modelBuilder.Entity<Rating>()
+            .Property(r => r.Rate)
+            .IsRequired();
     }
 }
