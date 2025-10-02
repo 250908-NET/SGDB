@@ -55,7 +55,7 @@ public class RatingController : ControllerBase
     {
         _logger.LogInformation("Getting rating for user {UserId} and game {GameId}", userId, gameId);
         var ratings = await _service.GetByUserIdAsync(userId);
-        var rating = ratings.FirstOrDefault(r => r.GameID == gameId);
+        var rating = ratings.FirstOrDefault(r => r.GameId == gameId);
         if (rating is null)
         {
             return NotFound("Rating not found.");
@@ -67,10 +67,29 @@ public class RatingController : ControllerBase
     [HttpPost(Name = "CreateRating")]
     public async Task<IActionResult> CreateAsync([FromBody] RatingDto dto)
     {
+
+         if (dto == null)
+            return BadRequest("Rating data is required.");
+
+        var existingRatings = await _service.GetByUserIdAsync(dto.UserId);
+        if (existingRatings.Any(r => r.GameId == dto.GameId))
+            return Conflict("Rating already exists for this user and game.");
+
+        var errors = new List<string>();
+
+        if (dto.Rate < 1 || dto.Rate > 10)
+            errors.Add("Rating score must be between 1 and 10.");
+
+        if (string.IsNullOrWhiteSpace(dto.Title))
+            errors.Add("Title is required and cannot be empty.");
+
+        if (errors.Any())
+            return BadRequest(new { Errors = errors });
+        
         _logger.LogInformation("Creating rating {@dto}", dto);
         var rating = _mapper.Map<Rating>(dto);
         await _service.CreateAsync(rating);
-        return Created($"/api/ratings/user/{rating.UserID}/game/{rating.GameID}", _mapper.Map<RatingDto>(rating));
+        return Created($"/api/ratings/user/{rating.UserId}/game/{rating.GameId}", _mapper.Map<RatingDto>(rating));
         
     }
 
@@ -78,10 +97,15 @@ public class RatingController : ControllerBase
     [HttpPut("{userId}/{gameId}", Name = "UpdateRating")]
     public async Task<IActionResult> UpdateAsync(int userId, int gameId, [FromBody] RatingDto dto)
     {
-        if (userId != dto.UserID || gameId != dto.GameID)
+        if (userId != dto.UserId || gameId != dto.GameId)
         {
             return BadRequest("Composite key mismatch");
         }
+
+        var userRatings = await _service.GetByUserIdAsync(userId);
+        var existing = userRatings.FirstOrDefault(r => r.GameId == gameId);
+        if (existing == null)
+            return NotFound("Rating not found.");
 
         _logger.LogInformation("Updating rating for user {UserId} and game {GameId}", userId, gameId);
         var rating = _mapper.Map<Rating>(dto);
@@ -93,6 +117,12 @@ public class RatingController : ControllerBase
     [HttpDelete("{userId}/{gameId}", Name = "DeleteRating")]
     public async Task<IActionResult> DeleteAsync(int userId, int gameId)
     {
+
+        var userRatings = await _service.GetByUserIdAsync(userId);
+        var existing = userRatings.FirstOrDefault(r => r.GameId == gameId);
+        if (existing == null)
+            return NotFound("Rating not found.");
+        
         _logger.LogInformation("Deleting rating for user {UserId} and game {GameId}", userId, gameId);
         await _service.DeleteAsync(userId, gameId);
         return NoContent();

@@ -23,7 +23,7 @@ public class RatingRepository : IRatingRepository
     public async Task<List<Rating>> GetByGameIdAsync(int gameId)
     {
         return await _context.Ratings
-            .Where(r => r.GameID == gameId)
+            .Where(r => r.GameId == gameId)
             .ToListAsync();
     }
 
@@ -31,7 +31,7 @@ public class RatingRepository : IRatingRepository
     public async Task<List<Rating>> GetByUserIdAsync(int userId)
     {
         return await _context.Ratings
-            .Where(r => r.UserID == userId)
+            .Where(r => r.UserId == userId)
             .ToListAsync();
     }
 
