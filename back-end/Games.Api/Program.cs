@@ -10,9 +10,6 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connection string
-string CS = File.ReadAllText("../ConnectionString.txt");
-
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -20,7 +17,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // EF Core DbContext
-builder.Services.AddDbContext<GamesDbContext>(options => options.UseSqlServer(CS));
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    // Connection string
+    string CS = File.ReadAllText("../ConnectionString.txt");
+
+    builder.Services.AddDbContext<GamesDbContext>(options => options.UseSqlServer(CS));
+}
 
 // Repositories
 builder.Services.AddScoped<IGameRepository, GameRepository>();
@@ -66,3 +69,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
+
+public partial class Program { }

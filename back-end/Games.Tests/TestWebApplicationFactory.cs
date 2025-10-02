@@ -1,10 +1,8 @@
-using System.Data.Common;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Games.Data;
 
 namespace Games.Tests;
@@ -15,32 +13,21 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     {
         builder.ConfigureServices(services =>
         {
-            var dbContextDescriptor = services.SingleOrDefault(d =>
-                d.ServiceType == typeof(IDbContextOptionsConfiguration<GamesDbContext>)
+            services.RemoveAll<DbContextOptions<GamesDbContext>>();
+            services.RemoveAll<GamesDbContext>();
+            services.AddDbContext<GamesDbContext>(options =>
+                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             );
-
-            services.Remove(dbContextDescriptor);
-
-            var dbConnectionDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbConnection));
-
-            services.Remove(dbConnectionDescriptor);
-
-            // Create open SqliteConnection so EF won't automatically close it.
-            services.AddSingleton<DbConnection>(container =>
-            {
-                var connection = new SqliteConnection("DataSource=:memory:");
-                connection.Open();
-
-                return connection;
-            });
-
-            services.AddDbContext<GamesDbContext>((container, options) =>
-            {
-                var connection = container.GetRequiredService<DbConnection>();
-                options.UseSqlite(connection);
-            });
         });
 
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment("Testing");
+    }
+
+    public async Task SeedDatabaseAsync()
+    {
+        using IServiceScope scope = Services.CreateScope();
+        GamesDbContext dbContext = scope.ServiceProvider.GetRequiredService<GamesDbContext>();
+        dbContext.Database.EnsureCreated();
+        await Utilities.SeedTestDbAsync(dbContext);
     }
 }
