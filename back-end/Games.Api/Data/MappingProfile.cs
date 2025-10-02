@@ -40,7 +40,7 @@ namespace Games.Data
                             ? src.GamePlatforms.Select(gp => gp.Game.Name).ToList()
                             : new List<string>()
                     ));
-                    
+
             CreateMap<CreatePlatformDto, Platform>();
             CreateMap<UpdatePlatformDto, Platform>();
 
@@ -56,6 +56,10 @@ namespace Games.Data
             CreateMap<Genre, GenreDto>().ReverseMap();
             CreateMap<CreateGenreDto, Genre>();
             CreateMap<UpdateGenreDto, Genre>();
+
+            // User mappings
+            CreateMap<CreateUserDto, User>();
+            CreateMap<User, UserDto>();
         }
     }
 }

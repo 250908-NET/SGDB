@@ -37,7 +37,7 @@ builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IPlatformService, PlatformService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IGenreService, GenreService>();  
+builder.Services.AddScoped<IGenreService, GenreService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
