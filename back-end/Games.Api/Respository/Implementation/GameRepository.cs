@@ -56,19 +56,8 @@ public class GameRepository : IGameRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Game?> LinkGameToPlatformAsync(int gameId, int platformId)
+    public async Task LinkGameToPlatformAsync(int gameId, int platformId)
     {
-        var game = await _context.Games
-            .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
-            .FirstOrDefaultAsync(g => g.GameId == gameId);
-
-        if (game == null)
-            throw new ArgumentException($"Game with ID {gameId} not found");
-
-        var platform = await _context.Platforms.FindAsync(platformId);
-        if (platform == null)
-            throw new ArgumentException($"Platform with ID {platformId} not found");
-
         var existingLink = await _context.GamePlatforms.FindAsync(gameId, platformId);
 
         // Create new link if doesn't exist
@@ -77,13 +66,29 @@ public class GameRepository : IGameRepository
             _context.GamePlatforms.Add(new GamePlatform { GameId = gameId, PlatformId = platformId });
             await _context.SaveChangesAsync();
         }
-
-        game = await _context.Games
-            .Include(g => g.GamePlatforms)
-            .ThenInclude(gp => gp.Platform)
-            .FirstOrDefaultAsync(g => g.GameId == gameId);
-
-        return game;
     }
+
+    public async Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId)
+    {
+        var updateLink = await _context.GamePlatforms.FindAsync(gameId, oldPlatformId);
+        if (updateLink != null)
+        {
+            _context.GamePlatforms.Remove(updateLink);
+            _context.GamePlatforms.Add(new GamePlatform { GameId = gameId, PlatformId = newPlatformId });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UnlinkGameFromPlatformAsync(int gameId, int platformId)
+    {
+        var link = await _context.GamePlatforms.FindAsync(gameId, platformId);
+        if (link != null)
+        {
+            _context.GamePlatforms.Remove(link);
+            await _context.SaveChangesAsync();
+        }
+    }
+        
+
 
 }
