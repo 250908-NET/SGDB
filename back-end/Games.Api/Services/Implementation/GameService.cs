@@ -33,4 +33,9 @@ public class GameService : IGameService
         await _repo.DeleteAsync(id);
         await _repo.SaveChangesAsync();
     }
+
+    public async Task<Game?> LinkGameToPlatformAsync(int gameId, int platformId)
+    {
+        return await _repo.LinkGameToPlatformAsync(gameId, platformId);
+    }
 }

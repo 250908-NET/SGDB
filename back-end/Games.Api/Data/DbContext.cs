@@ -17,6 +17,8 @@ public class GamesDbContext  : DbContext
     public DbSet<Company> Companies { get; set; } = null!;
     public DbSet<Genre> Genres { get; set; } = null!;
     public DbSet<GameGenre> GameGenres { get; set; } = null!;
+    public DbSet<Rating> Ratings { get; set; } = null!;
+    public DbSet<User> Users { get; set; }
 
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -57,7 +59,7 @@ public class GamesDbContext  : DbContext
             .WithMany(c => c.DevelopedGames)
             .HasForeignKey(g => g.DeveloperId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
         // Game to Genre
         modelBuilder.Entity<GameGenre>()
             .HasOne(gp => gp.Game)
@@ -69,5 +71,29 @@ public class GamesDbContext  : DbContext
             .HasOne(gp => gp.Genre)
             .WithMany(p => p.GameGenres)
             .HasForeignKey(gp => gp.GenreId);
+
+        // Rating Composite Primary Key
+        modelBuilder.Entity<Rating>()
+            .HasKey(r => new { r.UserID, r.GameID });
+
+        // Rating -> Game (many-to-one)
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.Game)
+            .WithMany(g => g.Ratings)
+            .HasForeignKey(r => r.GameID);
+
+        // Rating -> User (many-to-one)
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Ratings)
+            .HasForeignKey(r => r.UserID);
+
+        modelBuilder.Entity<Rating>()
+            .Property(r => r.Title)
+            .IsRequired();
+
+        modelBuilder.Entity<Rating>()
+            .Property(r => r.Rate)
+            .IsRequired();
     }
 }

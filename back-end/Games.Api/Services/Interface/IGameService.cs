@@ -9,4 +9,6 @@ public interface IGameService
     public Task CreateAsync(Game game);
     public Task UpdateAsync(Game game);
     public Task DeleteAsync(int id);
+    public Task<Game?> LinkGameToPlatformAsync(int gameId, int platformId);
+
 }

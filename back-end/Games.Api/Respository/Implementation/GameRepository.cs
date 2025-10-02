@@ -56,13 +56,34 @@ public class GameRepository : IGameRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task LinkGameToPlatformAsync(int gameId, int platformId)
+    public async Task<Game?> LinkGameToPlatformAsync(int gameId, int platformId)
     {
+        var game = await _context.Games
+            .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+            .FirstOrDefaultAsync(g => g.GameId == gameId);
+
+        if (game == null)
+            throw new ArgumentException($"Game with ID {gameId} not found");
+
+        var platform = await _context.Platforms.FindAsync(platformId);
+        if (platform == null)
+            throw new ArgumentException($"Platform with ID {platformId} not found");
+
         var existingLink = await _context.GamePlatforms.FindAsync(gameId, platformId);
+
+        // Create new link if doesn't exist
         if (existingLink == null)
         {
             _context.GamePlatforms.Add(new GamePlatform { GameId = gameId, PlatformId = platformId });
             await _context.SaveChangesAsync();
         }
+
+        game = await _context.Games
+            .Include(g => g.GamePlatforms)
+            .ThenInclude(gp => gp.Platform)
+            .FirstOrDefaultAsync(g => g.GameId == gameId);
+
+        return game;
     }
+
 }
