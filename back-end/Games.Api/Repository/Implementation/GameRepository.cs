@@ -17,6 +17,7 @@ public class GameRepository : IGameRepository
     {
         return await _context.Games
             .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+            .Include(g => g.GameGenres).ThenInclude(gp => gp.Genre)
             .Include(g => g.Developer)
             .Include(g => g.Publisher)
             .ToListAsync();
@@ -26,6 +27,7 @@ public class GameRepository : IGameRepository
     {
         return await _context.Games
             .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+            .Include(g => g.GameGenres).ThenInclude(gp => gp.Genre)
             .Include(g => g.Developer)
             .Include(g => g.Publisher)
             .FirstOrDefaultAsync(g => g.GameId == id);
@@ -88,7 +90,39 @@ public class GameRepository : IGameRepository
             await _context.SaveChangesAsync();
         }
     }
-        
+
+    public async Task LinkGameToGenreAsync(int gameId, int genreId)
+    {
+        var existingLink = await _context.GameGenres.FindAsync(gameId, genreId);
+
+        // Create new link if doesn't exist
+        if (existingLink == null)
+        {
+            _context.GameGenres.Add(new GameGenre { GameId = gameId, GenreId = genreId });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId)
+    {
+        var updateLink = await _context.GameGenres.FindAsync(gameId, oldGenreId);
+        if (updateLink != null)
+        {
+            _context.GameGenres.Remove(updateLink);
+            _context.GameGenres.Add(new GameGenre { GameId = gameId, GenreId = newGenreId });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UnlinkGameFromGenreAsync(int gameId, int genreId)
+    {
+        var link = await _context.GameGenres.FindAsync(gameId, genreId);
+        if (link != null)
+        {
+            _context.GameGenres.Remove(link);
+            await _context.SaveChangesAsync();
+        }
+    } 
 
 
 }

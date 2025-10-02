@@ -13,12 +13,11 @@ namespace Games.Controllers;
 [Route("api/[controller]")]
 public class GenresController : ControllerBase
 {
-    private readonly GamesDbContext _context;
     private readonly ILogger<GenresController> _logger;
     private readonly IGenreService _service;
     private readonly IMapper _mapper;
 
-    public GenresController(ILogger<GenresController> logger, IGenreService genreService, IMapper mapper, GamesDbContext context)
+    public GenresController(ILogger<GenresController> logger, IGenreService genreService, IMapper mapper)
     {
         _logger = logger;
         _service = genreService;

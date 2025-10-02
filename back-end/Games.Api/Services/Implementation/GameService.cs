@@ -48,4 +48,19 @@ public class GameService : IGameService
     {
         await _repo.UnlinkGameFromPlatformAsync(gameId, platformId);
     }
+    
+    public async Task LinkGameToGenreAsync(int gameId, int genreId)
+    {
+        await _repo.LinkGameToGenreAsync(gameId, genreId);
+    }
+
+    public async Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId)
+    {
+        await _repo.UpdateGameGenreAsync(gameId, oldGenreId, newGenreId);
+    }
+
+    public async Task UnlinkGameFromGenreAsync(int gameId, int genreId)
+    {
+        await _repo.UnlinkGameFromGenreAsync(gameId, genreId);
+    }
 }

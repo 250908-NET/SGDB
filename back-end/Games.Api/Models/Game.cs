@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; 
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Games.Models;
 
@@ -29,5 +29,7 @@ public class Game
     // Many to many relationship
     public ICollection<GamePlatform> GamePlatforms { get; set; } = new List<GamePlatform>();
     public ICollection<GameGenre> GameGenres { get; set; } = new List<GameGenre>();
+
+    public ICollection<User> UsersList { get; set; } = new List<User>();
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
 }

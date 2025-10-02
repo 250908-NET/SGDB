@@ -5,6 +5,16 @@ namespace Games.DTOs;
 public static class MappingExtensions
 {
 
+    //User 
+    public static UserDto ToDto(this User user)
+    {
+        return new UserDto
+        {
+            UserId = user.UserId,
+            username = user.username
+        };
+    }
+
     // GAME
     public static GameDto ToDto(this Game game)
     {
