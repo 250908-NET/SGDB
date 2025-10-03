@@ -1,35 +1,37 @@
-using Games.DTOs;
 using Games.Models;
 using Games.Repositories;
 
-namespace Games.Services;
-
-public class UserService : IUserService
+namespace Games.Services
 {
-    private IUserRepository _userRepo;
-    public UserService(IUserRepository userRepo)
+    public class UserService : IUserService
     {
-        _userRepo = userRepo;
-    }
+        private readonly IUserRepository _repo;
 
-    public Task<List<User>> GetAllUsersAsync()
-    {
-        return _userRepo.GetAllAsync();
-    }
-    public Task<User?> GetUserByIdAsync(int id)
-    {
-        return _userRepo.GetUserByIDAsync();
-    }
-    public Task<User> CreateUserAsync(CreateUserDto Dto)
-    {
-        return _userRepo.AddUserAsync(Dto);
-    }
-    public Task<User> UpdateUserAsync(UserDto Dto)
-    {
-        return _userRepo.ChangeUserAsync();
-    }
-    public Task<User> DeleteUserAsync(int id)
-    {
-        return _userRepo.RemoveUserAsync();
+        public UserService(IUserRepository repo)
+        {
+            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+        }
+
+        public async Task<List<User>> GetAllUsersAsync() => await _repo.GetAllAsync();
+
+        public async Task<User?> GetUserByIdAsync(int id) => await _repo.GetUserByIDAsync(id);
+
+        public async Task AddUserAsync(User user)
+        {
+            await _repo.AddUserAsync(user);
+            await _repo.SaveChangesAsync();
+        }
+
+        public async Task ChangeUserAsync(User user)
+        {
+            await _repo.ChangeUserAsync(user);
+            await _repo.SaveChangesAsync();
+        }
+
+        public async Task RemoveUserAsync(int id)
+        {
+            await _repo.RemoveUserAsync(id);
+            await _repo.SaveChangesAsync();
+        }
     }
 }

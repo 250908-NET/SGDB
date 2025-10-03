@@ -71,6 +71,7 @@ namespace Games.Data
 
             // User mappings
             CreateMap<CreateUserDto, User>();
+            CreateMap<UpdateUserDto, User>();
             CreateMap<User, UserDto>();
         }
     }
