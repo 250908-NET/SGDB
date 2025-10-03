@@ -13,6 +13,7 @@ public static class Utilities
         dbContext.Platforms.RemoveRange(dbContext.Platforms);
         dbContext.Companies.RemoveRange(dbContext.Companies);
         dbContext.Genres.RemoveRange(dbContext.Genres);
+        dbContext.Ratings.RemoveRange(dbContext.Ratings);
         await dbContext.SaveChangesAsync();
 
         // Seed platforms
@@ -57,11 +58,39 @@ public static class Utilities
             }
         };
 
+        // Seed users - Needs to be changed
+        var user1 = new User();
+        var user2 = new User();
+
+        //Seed Ratings
+        var rate1 = new Rating
+        {
+            Game = finalFantasy6,
+            User = user1,
+            Title = "Cant wait for the next installment!",
+            Description = "Feels like the next game will keep this franchise from ever being forgotten!",
+            Rate = 9,
+            DateTimeRated = DateTime.UtcNow
+        };
+
+        var rate2 = new Rating
+        {
+            Game = pokemonPlatinum,
+            User = user2,
+            Title = "Exactly the same",
+            Description = "Feels like they are never trying anything new.",
+            Rate = 3,
+            DateTimeRated = DateTime.UtcNow
+        };
+
         dbContext.Platforms.AddRange(snes, ds);
         dbContext.Companies.AddRange(square, gameFreak);
         dbContext.Genres.Add(rpg);
 
         dbContext.Games.AddRange(finalFantasy6, pokemonPlatinum);
+        
+        dbContext.Users.AddRange(user1, user2);
+        dbContext.Ratings.AddRange(rate1, rate2);
 
         await dbContext.SaveChangesAsync();
     }

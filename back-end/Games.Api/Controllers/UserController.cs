@@ -1,31 +1,49 @@
 using Microsoft.AspNetCore.Mvc;
-using Games.Models;
+using Microsoft.EntityFrameworkCore;
 using Games.Services;
+using Games.DTOs;
+using Games.Models;
+using Games.Data;
+using AutoMapper;
+using System.Collections.Generic;
 
 namespace Games.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users/[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly IUserService _service;
+    private readonly GamesDbContext _context;
+    private readonly IMapper _mapper;
     private readonly ILogger<UserController> _logger;
 
-    public UserController(IUserService service, ILogger<UserController> logger)
+    private readonly IUserService _service;
+
+    public UserController(ILogger<UserController> logger, GamesDbContext context, IMapper mapper, IUserService service)
     {
+        _context = context;
+        _mapper = mapper;
         _service = service;
         _logger = logger;
     }
 
-    // POST /api/user
-    [HttpPost(Name = "CreateUser")]
-    public async Task<IActionResult> CreateAsync()
+    //GET: receive all Users
+    [HttpPost]
+    public async Task<ActionResult<IEnumerable<UserDto>>> CreateUsers(CreateUserDto DTO)
     {
-        _logger.LogInformation("Creating new user");
-
-        var newUser = new User(); // Empty user
-        var createdUser = await _service.CreateAsync(newUser);
-
-        return Created($"/api/user/{createdUser.UserID}", createdUser);
+        User Users = await _service.CreateUserAsync(DTO);
+        return Ok(Users);
+        // return Ok(_mapper.Map<UserDto>(Users));
     }
+
+    [HttpGet]
+    public async Task<ActionResult<UserDto>> GetUser()
+    {
+        List<User> Users = await _service.GetAllUsersAsync();
+        // return Ok(Users);
+        return Ok(_mapper.Map<List<UserDto>>(Users));
+    }
+
 }
+
+

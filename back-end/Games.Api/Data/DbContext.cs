@@ -5,10 +5,10 @@ using Games.Models;
 namespace Games.Data;
 
 
-public class GamesDbContext  : DbContext
+public class GamesDbContext : DbContext
 {
     // Constructor
-    public GamesDbContext (DbContextOptions<GamesDbContext > options) : base(options) {}
+    public GamesDbContext(DbContextOptions<GamesDbContext> options) : base(options) { }
 
     // DbSets (tables)
     public DbSet<Game> Games { get; set; } = null!;
@@ -20,6 +20,9 @@ public class GamesDbContext  : DbContext
     public DbSet<Rating> Ratings { get; set; } = null!;
     public DbSet<User> Users { get; set; }
 
+
+
+    public DbSet<User> User { get; set; } = null!;
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

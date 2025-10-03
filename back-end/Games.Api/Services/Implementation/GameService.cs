@@ -34,8 +34,33 @@ public class GameService : IGameService
         await _repo.SaveChangesAsync();
     }
 
-    public async Task<Game?> LinkGameToPlatformAsync(int gameId, int platformId)
+    public async Task LinkGameToPlatformAsync(int gameId, int platformId)
     {
-        return await _repo.LinkGameToPlatformAsync(gameId, platformId);
+        await _repo.LinkGameToPlatformAsync(gameId, platformId);
+    }
+
+    public async Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId)
+    {
+        await _repo.UpdateGamePlatformAsync(gameId, oldPlatformId, newPlatformId);
+    }
+
+    public async Task UnlinkGameFromPlatformAsync(int gameId, int platformId)
+    {
+        await _repo.UnlinkGameFromPlatformAsync(gameId, platformId);
+    }
+    
+    public async Task LinkGameToGenreAsync(int gameId, int genreId)
+    {
+        await _repo.LinkGameToGenreAsync(gameId, genreId);
+    }
+
+    public async Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId)
+    {
+        await _repo.UpdateGameGenreAsync(gameId, oldGenreId, newGenreId);
+    }
+
+    public async Task UnlinkGameFromGenreAsync(int gameId, int genreId)
+    {
+        await _repo.UnlinkGameFromGenreAsync(gameId, genreId);
     }
 }

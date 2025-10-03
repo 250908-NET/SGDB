@@ -1,8 +1,10 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Games.Data;
-using Games.Models;
+using Games.Services;
 using Games.DTOs;
+using Games.Models;
+using Games.Data;
 
 namespace Games.Controllers;
 
@@ -10,110 +12,74 @@ namespace Games.Controllers;
 [Route("api/[controller]")]
 public class CompanyController : ControllerBase
 {
-    private readonly GamesDbContext _context;
-    private readonly ILogger<GamesController> _logger;
+    //private readonly GamesDbContext _context;
+    private readonly ILogger<CompanyController> _logger;
+    private readonly ICompanyService _service;
+    private readonly IMapper _mapper;
 
 
-    public CompanyController(GamesDbContext context)
+    public CompanyController(ILogger<CompanyController> logger, ICompanyService service, IMapper mapper)
     {
-        //_logger = logger;
-        _context = context;
-        //_service = service;
+        _logger = logger;
+        _service = service;
+        _mapper = mapper;
     }
 
-    // GET: /Company
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<CompanyDto>>> GetCompanies()
+    // Get all companies
+    [HttpGet(Name = "GetAllCompanies")]
+    public async Task<IActionResult> GetAllAsync()
     {
-        var companies = await _context.Companies
-            .Include(c => c.DevelopedGames)
-            .Include(c => c.PublishedGames)
-            .ToListAsync();
-
-        var result = companies.Select(c => new CompanyDto
-        {
-            CompanyId = c.CompanyId,
-            Name = c.Name,
-            DevelopedGames = c.DevelopedGames.Select(g => g.Name).ToList(),
-            PublishedGames = c.PublishedGames.Select(g => g.Name).ToList()
-        });
-
-        return Ok(result);
+        _logger.LogInformation("Getting all companies");
+        var companies = await _service.GetAllAsync();
+        return Ok(_mapper.Map<List<CompanyDto>>(companies));
     }
 
-    // GET: /Company/{id}
-    [HttpGet("{id}")]
-    public async Task<ActionResult<CompanyDto>> GetCompany(int id)
+    // Get a company by companyId
+    [HttpGet("{id}", Name = "GetCompanyById")]
+    public async Task<IActionResult> GetByIdAsync(int id)
     {
-        var company = await _context.Companies
-            .Include(c => c.DevelopedGames)
-            .Include(c => c.PublishedGames)
-            .FirstOrDefaultAsync(c => c.CompanyId == id);
-
+        _logger.LogInformation("Getting company {id}", id);
+        var company = await _service.GetByIdAsync(id);
         if (company is null) return NotFound("Company not found");
-
-        var result = new CompanyDto
-        {
-            CompanyId = company.CompanyId,
-            Name = company.Name,
-            DevelopedGames = company.DevelopedGames.Select(g => g.Name).ToList(),
-            PublishedGames = company.PublishedGames.Select(g => g.Name).ToList()
-        };
-
-        return Ok(result);
+        return Ok(_mapper.Map<CompanyDto>(company));
     }
 
-    // POST: /Company
-    [HttpPost]
-    public async Task<ActionResult<CompanyDto>> CreateCompany(CreateCompanyDto dto)
+    // Create company
+    [HttpPost(Name = "CreateCompany")]
+    public async Task<IActionResult> CreateAsync([FromBody] CreateCompanyDto dto)
     {
-        var company = new Company
-        {
-            Name = dto.Name,
-        };
-
-        _context.Companies.Add(company);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetCompany), new { id = company.CompanyId }, new CompanyDto
-        {
-            CompanyId = company.CompanyId,
-            Name = company.Name,
-            DevelopedGames = new List<string>(),
-            PublishedGames = new List<string>()
-        });
+        _logger.LogInformation("Creating company {@dto}", dto);
+        var company = _mapper.Map<Company>(dto);
+        await _service.CreateAsync(company);
+        return Created($"/api/company/{company.CompanyId}", _mapper.Map<CompanyDto>(company));
     }
 
-    // PUT: /Company/{id}
-    [HttpPut("{id}")]
+    // Update company
+    [HttpPut("{id}", Name = "UpdateCompany")]
     public async Task<IActionResult> UpdateCompany(int id, UpdateCompanyDto dto)
     {
-        var company = await _context.Companies.FindAsync(id);
-        if (company is null) return NotFound("Company not found");
-
-        company.Name = dto.Name;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new CompanyDto
+        _logger.LogInformation("Updating company {id}", id);
+        var company = await _service.GetByIdAsync(id);
+        if (company is null)
         {
-            CompanyId = company.CompanyId,
-            Name = company.Name,
-            DevelopedGames = company.DevelopedGames.Select(g => g.Name).ToList(),
-            PublishedGames = company.PublishedGames.Select(g => g.Name).ToList()
-        });
+            return NotFound("Company not found");
+        }
+
+        _mapper.Map(dto, company);
+        await _service.UpdateAsync(company);
+
+        return Ok(_mapper.Map<CompanyDto>(company));
     }
 
-    // DELETE: /Company/{id}
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCompany(int id)
+    /// DELETE: delete company
+    [HttpDelete("{id}", Name = "DeleteCompany")]
+    public async Task<IActionResult> DeleteAsync(int id)
     {
-        var company = await _context.Companies.FindAsync(id);
+        _logger.LogInformation("Deleting company {id}", id);
+        var company = await _service.GetByIdAsync(id);
         if (company is null) return NotFound("Company not found");
 
-        _context.Companies.Remove(company);
-        await _context.SaveChangesAsync();
-
+        await _service.DeleteAsync(id);
         return NoContent();
     }
 }
