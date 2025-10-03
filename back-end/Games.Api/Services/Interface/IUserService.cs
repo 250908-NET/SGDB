@@ -10,4 +10,7 @@ public interface IUserService
     public Task AddUserAsync(User user);
     public Task ChangeUserAsync(User user);
     public Task RemoveUserAsync(int id);
+
+    public Task LinkUserToGenreAsync(int userId, int genreId);
+    public Task UnlinkUserFromGenreAsync(int userId, int genreId);
 }

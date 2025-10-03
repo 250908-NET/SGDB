@@ -33,5 +33,15 @@ namespace Games.Services
             await _repo.RemoveUserAsync(id);
             await _repo.SaveChangesAsync();
         }
+
+        public async Task LinkUserToGenreAsync(int userId, int genreId)
+        {
+            await _repo.LinkUserToGenreAsync(userId, genreId);
+        }
+
+        public async Task UnlinkUserFromGenreAsync(int userId, int genreId)
+        {
+            await _repo.UnlinkUserFromGenreAsync(userId, genreId);
+        }
     }
 }
