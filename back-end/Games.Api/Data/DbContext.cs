@@ -18,11 +18,12 @@ public class GamesDbContext : DbContext
     public DbSet<Genre> Genres { get; set; } = null!;
     public DbSet<GameGenre> GameGenres { get; set; } = null!;
     public DbSet<Rating> Ratings { get; set; } = null!;
-    public DbSet<User> Users { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<UserGenre> UserGenres { get; set; } = null!;
 
 
 
-    public DbSet<User> User { get; set; } = null!;
+    //public DbSet<User> User { get; set; } = null!;
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,9 @@ public class GamesDbContext : DbContext
 
         modelBuilder.Entity<GameGenre>()
             .HasKey(gc => new { gc.GameId, gc.GenreId });
+
+        modelBuilder.Entity<UserGenre>()
+            .HasKey(ug => new { ug.UserId, ug.GenreId });
 
         // Relationships
 
@@ -98,5 +102,18 @@ public class GamesDbContext : DbContext
         modelBuilder.Entity<Rating>()
             .Property(r => r.Rate)
             .IsRequired();
+
+        // User to Genre
+        modelBuilder.Entity<UserGenre>()
+            .HasOne(ug => ug.User)
+            .WithMany(u => u.UserGenres)
+            .HasForeignKey(ug => ug.UserId);
+
+        // Genre to user
+        // modelBuilder.Entity<UserGenre>()
+        //     .HasOne(ug => ug.Genre)
+        //     .WithMany(u => u.UserGenres)
+        //     .HasForeignKey(ug => ug.GenreId);
+
     }
 }

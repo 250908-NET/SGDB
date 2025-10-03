@@ -19,35 +19,67 @@ public class UserRepository : IUserRepository
 
     public async Task<List<User>> GetAllAsync()
     {
-        return await _context.User.ToListAsync();
+        return await _context.Users
+            .Include(u => u.GameLibrary)
+            .Include(u => u.Ratings)
+            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
+            .ToListAsync();
     }
 
-    public Task<User> GetUserByIDAsync()
+    public async Task<User?> GetUserByIDAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Users
+            .Include(u => u.GameLibrary)
+            .Include(u => u.Ratings)
+            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
+            .FirstOrDefaultAsync(g => g.UserId == id);
     }
 
-    public async Task<User> AddUserAsync(CreateUserDto DTO)
+    public async Task AddUserAsync(User user)
     {
-        User user = _mapper.Map<User>(DTO);
-        await _context.User.AddAsync(user);
+        await _context.Users.AddAsync(user);
+
+    }
+
+    public async Task ChangeUserAsync(User user)
+    {
+        _context.Users.Update(user);
+        await Task.CompletedTask;
+    }
+
+    public async Task RemoveUserAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user != null)
+        {
+            _context.Users.Remove(user);
+        }
+    }
+
+    public async Task SaveChangesAsync()
+    {
         await _context.SaveChangesAsync();
-        return _mapper.Map<User>(user);
-
-    }
-    public Task<User> AddAsync(User user)
-    {
-        throw new NotImplementedException();
     }
 
-    public Task<User> ChangeUserAsync()
+    public async Task LinkUserToGenreAsync(int userId, int genreId)
     {
-        throw new NotImplementedException();
+        var existingLink = await _context.UserGenres.FindAsync(userId, genreId);
+
+        if (existingLink == null)
+        {
+            _context.UserGenres.Add(new UserGenre { UserId = userId, GenreId = genreId });
+            await _context.SaveChangesAsync();
+        }
     }
 
-    public Task<User> RemoveUserAsync()
+    public async Task UnlinkUserFromGenreAsync(int userId, int genreId)
     {
-        throw new NotImplementedException();
+        var link = await _context.UserGenres.FindAsync(userId, genreId);
+        if (link != null)
+        {
+            _context.UserGenres.Remove(link);
+            await _context.SaveChangesAsync();
+        }
     }
 
 
