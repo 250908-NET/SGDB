@@ -26,7 +26,7 @@ namespace Games.Tests
         //     // Arrange
         //     await SeedDataAsync();
 
-        //     // Assert
+        //     // Act
         //     List<Game> result = await _repository.GetAllAsync();
 
         //     // Assert
