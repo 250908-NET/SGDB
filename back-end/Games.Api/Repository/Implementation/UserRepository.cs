@@ -22,7 +22,7 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .Include(u => u.GameLibrary)
             .Include(u => u.Ratings)
-            .Include(u => u.PreferedGenres)
+            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
             .ToListAsync();
     }
 
@@ -31,7 +31,7 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .Include(u => u.GameLibrary)
             .Include(u => u.Ratings)
-            .Include(u => u.PreferedGenres)
+            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
             .FirstOrDefaultAsync(g => g.UserId == id);
     }
 
@@ -60,6 +60,28 @@ public class UserRepository : IUserRepository
     {
         await _context.SaveChangesAsync();
     }
+
+    public async Task LinkUserToGenreAsync(int userId, int genreId)
+    {
+        var existingLink = await _context.UserGenres.FindAsync(userId, genreId);
+
+        if (existingLink == null)
+        {
+            _context.UserGenres.Add(new UserGenre { UserId = userId, GenreId = genreId });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UnlinkUserFromGenreAsync(int userId, int genreId)
+    {
+        var link = await _context.UserGenres.FindAsync(userId, genreId);
+        if (link != null)
+        {
+            _context.UserGenres.Remove(link);
+            await _context.SaveChangesAsync();
+        }
+    }
+
 
 
 }

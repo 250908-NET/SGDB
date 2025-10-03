@@ -17,7 +17,7 @@ public class User
     
     public ICollection<Game> GameLibrary { get; set; } = new List<Game>();
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
-    public ICollection<Genre> PreferedGenres { get; set; } = new List<Genre>();
+    public ICollection<UserGenre> UserGenres { get; set; } = new List<UserGenre>();
     
 
     // public static implicit operator List<object>(User v)

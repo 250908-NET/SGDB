@@ -16,4 +16,8 @@ public interface IUserRepository
     //Task AddAsync(User user);
     Task SaveChangesAsync();
 
+    Task LinkUserToGenreAsync(int userId, int genreId);
+    //Task UpdateUserGenreAsync(int userId, int oldGenreId, int newGenreId);
+    Task UnlinkUserFromGenreAsync(int userId, int genreId);
+
 }

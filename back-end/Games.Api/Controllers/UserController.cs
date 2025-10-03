@@ -17,13 +17,17 @@ public class UserController : ControllerBase
     private readonly IMapper _mapper;
     private readonly ILogger<UserController> _logger;
     private readonly IUserService _service;
+    private readonly IGenreService _genreService;
+    private readonly IGameService _gameService;
 
-    public UserController(ILogger<UserController> logger, IMapper mapper, IUserService service)
+    public UserController(ILogger<UserController> logger, IMapper mapper, IUserService service, IGenreService genreService, IGameService gameService)
     {
         //_context = context;
         _mapper = mapper;
         _service = service;
         _logger = logger;
+        _genreService = genreService;
+        _gameService = gameService;
     }
 
     // Get all users
@@ -89,7 +93,64 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    
+    // Link user to genre
+    [HttpPost("{userId}/genres/{genreId}")]
+    public async Task<IActionResult> LinkUserToGenre(int userId, int genreId)
+    {
+        _logger.LogInformation("Linking user {userId} to genre {genreId}", userId, genreId);
+
+        // Check to see if user exists
+        var user = await _service.GetUserByIdAsync(userId);
+        if (user is null)
+        {
+            return NotFound($"User with ID {userId} not found.");
+        }
+
+        // Check to see if genre exists
+        var genre = await _genreService.GetByIdAsync(genreId);
+        if (genre is null)
+        {
+            return NotFound($"Genre with ID {genreId} not found.");
+        }
+
+        // Check if already linked
+        if (user.UserGenres.Any(gp => gp.GenreId == genreId))
+        {
+            return BadRequest("This user is already linked to that genre.");
+        }
+        await _service.LinkUserToGenreAsync(userId, genreId);
+        return Ok(new { Message = "Linked successfully", UserId = userId, GenreId = genreId });
+    }
+
+    [HttpDelete("{userId}/genres/{genreId}")]
+    public async Task<IActionResult> DeleteUserGenre(int userId, int genreId)
+    {
+        _logger.LogInformation("Unlinking user {userId} from genre {genreId}", userId, genreId);
+        // Check to see if user exists
+        var user = await _service.GetUserByIdAsync(userId);
+        if (user is null)
+        {
+            return NotFound($"User with ID {userId} not found.");
+        }
+
+        // Check to see if genre exists
+        var genre = await _genreService.GetByIdAsync(genreId);
+        if (genre is null)
+        {
+            return NotFound($"Genre with ID {genreId} not found.");
+        }
+
+        // Check if link actually exists
+        if (!user.UserGenres.Any(gp => gp.GenreId == genreId))
+        {
+            return BadRequest("This user is not linked to that genre.");
+        }
+
+        await _service.UnlinkUserFromGenreAsync(userId, genreId);
+        return NoContent();
+    }
+
+
 
 }
 

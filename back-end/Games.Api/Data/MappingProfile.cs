@@ -72,7 +72,13 @@ namespace Games.Data
             // User mappings
             CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>();
-            CreateMap<User, UserDto>();
+            CreateMap<User, UserDto>()
+                .ForMember(dest => dest.UserGenres,
+                    opt => opt.MapFrom(src =>
+                        src.UserGenres != null
+                            ? src.UserGenres.Select(ug => ug.Genre.Name).ToList()
+                            : new List<string>()
+                    ));
         }
     }
 }
