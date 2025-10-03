@@ -51,7 +51,7 @@ public class CompanyController : ControllerBase
         _logger.LogInformation("Creating company {@dto}", dto);
         var company = _mapper.Map<Company>(dto);
         await _service.CreateAsync(company);
-        return CreatedAtAction(nameof(GetByIdAsync), new { id = company.CompanyId }, _mapper.Map<CompanyDto>(company));
+        return Created($"/api/company/{company.CompanyId}", _mapper.Map<CompanyDto>(company));
     }
 
     // Update company
