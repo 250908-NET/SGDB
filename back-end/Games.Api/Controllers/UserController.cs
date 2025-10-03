@@ -150,7 +150,65 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
+    // Link user to game
+    [HttpPost("{userId}/games/{gameId}")]
+    public async Task<IActionResult> LinkUserToGame(int userId, int gameId)
+    {
+        _logger.LogInformation("Linking user {userId} to game {gameId}", userId, gameId);
 
+        // Check to see if user exists
+        var user = await _service.GetUserByIdAsync(userId);
+        if (user is null)
+        {
+            return NotFound($"User with ID {userId} not found.");
+        }
+
+        // Check to see if game exists
+        var game = await _gameService.GetByIdAsync(gameId);
+        if (game is null)
+        {
+            return NotFound($"Game with ID {gameId} not found.");
+        }
+
+        // Check if already linked
+        if (user.GameLibrary.Any(ug => ug.GameId == gameId))
+        {
+            return BadRequest("This user is already linked to that game.");
+        }
+
+        await _service.LinkUserToGameAsync(userId, gameId);
+        return Ok(new { Message = "Linked successfully", UserId = userId, GameId = gameId });
+    }
+
+    // Unlink user from game
+    [HttpDelete("{userId}/games/{gameId}")]
+    public async Task<IActionResult> DeleteUserGame(int userId, int gameId)
+    {
+        _logger.LogInformation("Unlinking user {userId} from game {gameId}", userId, gameId);
+
+        // Check to see if user exists
+        var user = await _service.GetUserByIdAsync(userId);
+        if (user is null)
+        {
+            return NotFound($"User with ID {userId} not found.");
+        }
+
+        // Check to see if game exists
+        var game = await _gameService.GetByIdAsync(gameId);
+        if (game is null)
+        {
+            return NotFound($"Game with ID {gameId} not found.");
+        }
+
+        // Check if link actually exists
+        if (!user.GameLibrary.Any(ug => ug.GameId == gameId))
+        {
+            return BadRequest("This user is not linked to that game.");
+        }
+
+        await _service.UnlinkUserFromGameAsync(userId, gameId);
+        return NoContent();
+    }
 
 }
 
