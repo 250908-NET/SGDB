@@ -78,7 +78,14 @@ namespace Games.Data
                         src.UserGenres != null
                             ? src.UserGenres.Select(ug => ug.Genre.Name).ToList()
                             : new List<string>()
+                    ))
+                .ForMember(dest => dest.GameLibrary,
+                    opt => opt.MapFrom(src =>
+                        src.GameLibrary != null
+                            ? src.GameLibrary.Select(ug => ug.Game.Name).ToList()
+                            : new List<string>()
                     ));
+
         }
     }
 }

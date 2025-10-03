@@ -15,7 +15,7 @@ public class User
     [Required]
     public string role { get; set; } = string.Empty;
     
-    public ICollection<Game> GameLibrary { get; set; } = new List<Game>();
+    public ICollection<UserGame> GameLibrary { get; set; } = new List<UserGame>();
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
     public ICollection<UserGenre> UserGenres { get; set; } = new List<UserGenre>();
     
