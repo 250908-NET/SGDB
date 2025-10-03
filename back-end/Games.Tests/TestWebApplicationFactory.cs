@@ -16,7 +16,7 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             services.RemoveAll<DbContextOptions<GamesDbContext>>();
             services.RemoveAll<GamesDbContext>();
             services.AddDbContext<GamesDbContext>(options =>
-                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                options.UseInMemoryDatabase(databaseName: "testDb")
             );
         });
 
@@ -27,6 +27,7 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     {
         using IServiceScope scope = Services.CreateScope();
         GamesDbContext dbContext = scope.ServiceProvider.GetRequiredService<GamesDbContext>();
+        dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
         await Utilities.SeedTestDbAsync(dbContext);
     }
