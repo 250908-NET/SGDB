@@ -27,6 +27,7 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     {
         using IServiceScope scope = Services.CreateScope();
         GamesDbContext dbContext = scope.ServiceProvider.GetRequiredService<GamesDbContext>();
+        dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
         await Utilities.SeedTestDbAsync(dbContext);
     }
