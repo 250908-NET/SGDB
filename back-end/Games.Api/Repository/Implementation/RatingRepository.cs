@@ -44,9 +44,17 @@ public class RatingRepository : IRatingRepository
     }
 
     // PUT /api/ratings/{userId}/{gameId}
-    public async Task UpdateAsync(int userId, int gameId, Rating rating)
+    public async Task UpdateAsync(int userId, int gameId, Rating updatedRating)
     {
-        _context.Ratings.Update(rating);
+        var existing = await _context.Ratings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.UserId == userId && r.GameId == gameId);
+
+        if (existing == null)
+            throw new KeyNotFoundException("Rating not found.");
+
+        _context.Ratings.Attach(updatedRating);
+        _context.Entry(updatedRating).State = EntityState.Modified;
         await _context.SaveChangesAsync();
     }
 
