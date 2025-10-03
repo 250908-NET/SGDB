@@ -18,11 +18,11 @@ public class GamesDbContext : DbContext
     public DbSet<Genre> Genres { get; set; } = null!;
     public DbSet<GameGenre> GameGenres { get; set; } = null!;
     public DbSet<Rating> Ratings { get; set; } = null!;
-    public DbSet<User> Users { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
 
 
 
-    public DbSet<User> User { get; set; } = null!;
+    //public DbSet<User> User { get; set; } = null!;
     //  Model configuration
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,5 +98,8 @@ public class GamesDbContext : DbContext
         modelBuilder.Entity<Rating>()
             .Property(r => r.Rate)
             .IsRequired();
+
+        // User TBD
+        
     }
 }
