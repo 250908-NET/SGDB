@@ -13,11 +13,13 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     {
         builder.ConfigureServices(services =>
         {
+            var dbName = Guid.NewGuid().ToString();
+
             services.RemoveAll<DbContextOptions<GamesDbContext>>();
             services.RemoveAll<GamesDbContext>();
             services.AddDbContext<GamesDbContext>(options =>
-                options.UseInMemoryDatabase(databaseName: "testDb")
-            );
+                options.UseInMemoryDatabase(databaseName: dbName)
+                );
         });
 
         builder.UseEnvironment("Testing");
