@@ -93,14 +93,11 @@ public class RatingController : ControllerBase
         
     }
 
-    // PUT /api/ratings/{userId}/{gameId}
     [HttpPut("{userId}/{gameId}", Name = "UpdateRating")]
     public async Task<IActionResult> UpdateAsync(int userId, int gameId, [FromBody] RatingDto dto)
     {
         if (userId != dto.UserId || gameId != dto.GameId)
-        {
             return BadRequest("Composite key mismatch");
-        }
 
         var userRatings = await _service.GetByUserIdAsync(userId);
         var existing = userRatings.FirstOrDefault(r => r.GameId == gameId);
@@ -108,10 +105,14 @@ public class RatingController : ControllerBase
             return NotFound("Rating not found.");
 
         _logger.LogInformation("Updating rating for user {UserId} and game {GameId}", userId, gameId);
-        var rating = _mapper.Map<Rating>(dto);
-        await _service.UpdateAsync(userId, gameId, rating);
-        return Ok(_mapper.Map<RatingDto>(rating));
+
+        _mapper.Map(dto, existing);
+
+        await _service.UpdateAsync(userId, gameId, existing);
+
+        return Ok(_mapper.Map<RatingDto>(existing));
     }
+
 
     // DELETE /api/ratings/{userId}/{gameId}
     [HttpDelete("{userId}/{gameId}", Name = "DeleteRating")]
