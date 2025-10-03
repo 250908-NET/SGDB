@@ -1,19 +1,19 @@
 using Games.Data;
 using Games.DTOs;
 using Games.Models;
+
+namespace Games.Repositories;
+
 public interface IUserRepository
 {
-    public Task<List<User>> GetAllAsync();
+    Task<List<User>> GetAllAsync();
 
-    public Task<User> GetUserByIDAsync();
+    Task<User?> GetUserByIDAsync(int id);
 
-    public Task<User> AddUserAsync(CreateUserDto dto);
-
-    public Task<User> ChangeUserAsync();
-
-    public Task<User> RemoveUserAsync();
-    public Task<User> AddAsync(User user);
-
-
+    Task AddUserAsync(User user);
+    Task ChangeUserAsync(User user);
+    Task RemoveUserAsync(int id);
+    //Task AddAsync(User user);
+    Task SaveChangesAsync();
 
 }
