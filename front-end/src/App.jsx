@@ -1,35 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./styles.css";
+import { useState } from "react";
+import { AppProvider, useApp } from "./context/AppContext";
+import LoginPage from "./pages/LoginPage.jsx";
+import NavBar from "./components/NavBar.jsx";  // <-- capital B
+import GamesPage from "./pages/GamesPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
+function Shell() {
+  const { username, setUsername } = useApp();
+  const [route, setRoute] = useState("games");
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  if (!username) return <LoginPage onLogin={setUsername} />; //if no user stay on login
+
+  function handleLogout() {
+    setUsername(null);
+    setRoute("games");
+  }
+
+  let page = route === "games" ? <GamesPage /> : <ProfilePage />; //depending on route what page are we on
+
+return (
+  <>
+    <NavBar route={route} onNavigate={setRoute} onLogout={handleLogout} />
+    <div className="app-container">{page}</div>
+  </>
+);
 }
 
-export default App
+export default function App() {
+  return (
+    <AppProvider>
+      <Shell />
+    </AppProvider>
+  );
+}
