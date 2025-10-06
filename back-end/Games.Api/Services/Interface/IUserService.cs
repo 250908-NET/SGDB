@@ -13,4 +13,7 @@ public interface IUserService
 
     public Task LinkUserToGenreAsync(int userId, int genreId);
     public Task UnlinkUserFromGenreAsync(int userId, int genreId);
+
+    public Task LinkUserToGameAsync(int userId, int gameId);
+    public Task UnlinkUserFromGameAsync(int userId, int gameId);
 }

@@ -20,7 +20,7 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetAllAsync()
     {
         return await _context.Users
-            .Include(u => u.GameLibrary)
+            .Include(u => u.GameLibrary).ThenInclude(ug => ug.Game)
             .Include(u => u.Ratings)
             .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
             .ToListAsync();
@@ -29,7 +29,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetUserByIDAsync(int id)
     {
         return await _context.Users
-            .Include(u => u.GameLibrary)
+            .Include(u => u.GameLibrary).ThenInclude(ug => ug.Game)
             .Include(u => u.Ratings)
             .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
             .FirstOrDefaultAsync(g => g.UserId == id);
@@ -78,6 +78,27 @@ public class UserRepository : IUserRepository
         if (link != null)
         {
             _context.UserGenres.Remove(link);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task LinkUserToGameAsync(int userId, int gameId)
+    {
+        var existingLink = await _context.UserGames.FindAsync(userId, gameId);
+
+        if (existingLink == null)
+        {
+            _context.UserGames.Add(new UserGame { UserId = userId, GameId = gameId });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UnlinkUserFromGameAsync(int userId, int gameId)
+    {
+        var link = await _context.UserGames.FindAsync(userId, gameId);
+        if (link != null)
+        {
+            _context.UserGames.Remove(link);
             await _context.SaveChangesAsync();
         }
     }
