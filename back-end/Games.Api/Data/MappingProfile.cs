@@ -76,14 +76,14 @@ namespace Games.Data
                 .ForMember(dest => dest.UserGenres,
                     opt => opt.MapFrom(src =>
                         src.UserGenres != null
-                            ? src.UserGenres.Select(ug => ug.Genre.Name).ToList()
-                            : new List<string>()
+                            ? src.UserGenres.Select(ug => ug.GenreId).ToList()
+                            : new List<int>()
                     ))
                 .ForMember(dest => dest.GameLibrary,
                     opt => opt.MapFrom(src =>
                         src.GameLibrary != null
-                            ? src.GameLibrary.Select(ug => ug.Game.Name).ToList()
-                            : new List<string>()
+                            ? src.GameLibrary.Select(ug => ug.GameId).ToList()
+                            : new List<int>()
                     ));
 
         }
