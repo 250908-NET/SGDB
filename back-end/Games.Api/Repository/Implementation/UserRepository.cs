@@ -20,18 +20,18 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetAllAsync()
     {
         return await _context.Users
-            .Include(u => u.GameLibrary).ThenInclude(ug => ug.Game)
+            .Include(u => u.GameLibrary)
             .Include(u => u.Ratings)
-            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
+            .Include(u => u.UserGenres)
             .ToListAsync();
     }
 
     public async Task<User?> GetUserByIDAsync(int id)
     {
         return await _context.Users
-            .Include(u => u.GameLibrary).ThenInclude(ug => ug.Game)
+            .Include(u => u.GameLibrary)
             .Include(u => u.Ratings)
-            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
+            .Include(u => u.UserGenres)
             .FirstOrDefaultAsync(g => g.UserId == id);
     }
 

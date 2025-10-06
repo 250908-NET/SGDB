@@ -40,6 +40,8 @@ public class UserController : ControllerBase
     }
 
     // Get a user by userId
+
+    // Validate if username exists in 
     [HttpGet("{id}", Name = "GetUserById")]
     public async Task<ActionResult<UserDto>> GetUser(int id)
     {
