@@ -16,6 +16,12 @@ namespace Games.Services
 
         public async Task<User?> GetUserByIdAsync(int id) => await _repo.GetUserByIDAsync(id);
 
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            string lowerUsername = username.ToLower();
+            return await _repo.GetUserByUsernameAsync(lowerUsername);
+        }
+
         public async Task AddUserAsync(User user)
         {
             await _repo.AddUserAsync(user);

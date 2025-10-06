@@ -22,4 +22,6 @@ public interface IUserRepository
     Task LinkUserToGameAsync(int userId, int gameId);
     Task UnlinkUserFromGameAsync(int userId, int gameId);
 
+    Task<User?> GetUserByUsernameAsync(string username);
+
 }

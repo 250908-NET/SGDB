@@ -35,6 +35,14 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(g => g.UserId == id);
     }
 
+    public async Task<User?> GetUserByUsernameAsync(string username)
+    {
+        return await _context.Users
+            .Include(u => u.GameLibrary)
+            .Include(u => u.Ratings)
+            .Include(u => u.UserGenres)
+            .FirstOrDefaultAsync(u => u.username.ToLower() == username.ToLower());
+    }
     public async Task AddUserAsync(User user)
     {
         await _context.Users.AddAsync(user);
