@@ -1,0 +1,103 @@
+:root { --pad: 16px; --gap: 10px; --border: #e5e7eb; }
+
+body { margin: 0; font-family: system-ui, Arial, sans-serif; }
+
+/* App-wide layout  */
+.app-container { max-width: 1100px; margin: 0 auto; width: 100%; }
+.page { padding: 16px; }
+
+
+/* centered for auth */
+.center-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+/*our auth form*/
+.form-auth {
+  display: grid;
+  gap: var(--gap);
+  width: 300px;
+  justify-items: center;
+}
+.label { font-size: 12px; align-self: start; }
+.input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+
+/* will be for pfps currently for home logo */
+.logo, .avatar {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  display: block;
+  object-fit: cover;
+  /* background: #ff6b4a;   fallback if no image yet */
+}
+
+/* cantered navbar*/
+.app-navbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;   
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+
+.app-nav-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+
+.app-nav-btn[aria-current="page"] {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+/* Will be for our other pages not functional currently
+/* profile layout *
+.profile-hero {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.small { color: #6b7280; font-size: .9rem; }
+
+/* lists and cards  *
+.card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #fff; }
+.card-list { display: grid; gap: 10px; }
+.card-item {
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fafafa;
+  display: flex; gap: 10px; align-items: center;
+}
+.thumb { width: 48px; height: 48px; background: #ddd; border-radius: 6px; flex: 0 0 auto; }
+.section-title { margin: 24px 0 8px; font-weight: 600; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* games page *
+.sidebar-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+.search { display: flex; gap: 8px; align-items: center; }
+
+/* body { background: #f8fafc; } TEMP sanity marker */
+
