@@ -5,6 +5,7 @@ namespace Games.Repositories;
 public interface IGameRepository
 {
     Task<List<Game>> GetAllAsync();
+    Task<List<Game>> GetAllMatchingAsync(string? name);
     Task<Game?> GetByIdAsync(int id);
     Task AddAsync(Game game);
     Task UpdateAsync(Game game);
@@ -14,7 +15,7 @@ public interface IGameRepository
     Task LinkGameToPlatformAsync(int gameId, int platformId);
     Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId);
     Task UnlinkGameFromPlatformAsync(int gameId, int platformId);
-    
+
     Task LinkGameToGenreAsync(int gameId, int genreId);
     Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId);
     Task UnlinkGameFromGenreAsync(int gameId, int genreId);

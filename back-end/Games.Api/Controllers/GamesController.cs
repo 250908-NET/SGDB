@@ -29,12 +29,12 @@ public class GamesController : ControllerBase
         _mapper = mapper;
     }
 
-    // Get all games
+    // Get games. If no query string, get all games. If query string, then filter games according to query parameters.
     [HttpGet(Name = "GetAllGames")]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetGames([FromQuery] string? name)
     {
-        _logger.LogInformation("Getting all games");
-        var games = await _service.GetAllAsync();
+        _logger.LogInformation(name is null ? "Getting all games" : $"Getting all games containing \"{name}\" in name");
+        var games = await _service.GetGames(name);
         return Ok(_mapper.Map<List<GameDto>>(games));
     }
 
@@ -191,7 +191,7 @@ public class GamesController : ControllerBase
         return NoContent();
     }
 
-    
+
     // Link game to genre
     [HttpPost("{gameId}/genres/{genreId}")]
     public async Task<IActionResult> LinkGameToGenre(int gameId, int genreId)
