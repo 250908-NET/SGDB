@@ -7,6 +7,7 @@ public interface IUserService
 {
     public Task<List<User>> GetAllUsersAsync();
     public Task<User?> GetUserByIdAsync(int id);
+    public Task<User?> GetUserByUsernameAsync(string username);
     public Task AddUserAsync(User user);
     public Task ChangeUserAsync(User user);
     public Task RemoveUserAsync(int id);
@@ -16,4 +17,6 @@ public interface IUserService
 
     public Task LinkUserToGameAsync(int userId, int gameId);
     public Task UnlinkUserFromGameAsync(int userId, int gameId);
+
+
 }
