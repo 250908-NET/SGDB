@@ -6,6 +6,6 @@ public class UserDto
     public string username { get; set; } = string.Empty;
     public string role { get; set; } = string.Empty;
 
-    public List<string> UserGenres { get; set; } = new List<string>();
-    public List<string> GameLibrary { get; set; } = new List<string>();
+    public List<int> UserGenres { get; set; } = new List<int>();
+    public List<int> GameLibrary { get; set; } = new List<int>();
 }

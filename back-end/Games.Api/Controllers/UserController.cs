@@ -39,16 +39,28 @@ public class UserController : ControllerBase
         return Ok(_mapper.Map<List<UserDto>>(users));
     }
 
-    // Get a user by userId
+    // Get a user by userId    
     [HttpGet("{id}", Name = "GetUserById")]
     public async Task<ActionResult<UserDto>> GetUser(int id)
     {
-        _logger.LogInformation("Getting user {id}", id);
+        _logger.LogInformation("Getting user by id {id}", id);
         var user = await _service.GetUserByIdAsync(id);
-
+        // Validate if username 
         if (user is null)
-            return NotFound("User not found");
+            return NotFound($"User with '{id}' not found");
         // return Ok(Users);
+        return Ok(_mapper.Map<UserDto>(user));
+    }
+
+    // Get a user by username
+    [HttpGet("username/{username}")]
+    public async Task<IActionResult> GetByUsername(string username)
+    {   
+        _logger.LogInformation("Getting user by username {username}", username);
+        var user = await _service.GetUserByUsernameAsync(username);
+        if (user == null)
+            return NotFound($"User '{username}' not found.");
+
         return Ok(_mapper.Map<UserDto>(user));
     }
 
