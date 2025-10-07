@@ -14,8 +14,10 @@ public interface IGameRepository
     Task LinkGameToPlatformAsync(int gameId, int platformId);
     Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId);
     Task UnlinkGameFromPlatformAsync(int gameId, int platformId);
-    
+    Task ClearGamePlatformsAsync(int gameId);
+
     Task LinkGameToGenreAsync(int gameId, int genreId);
     Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId);
     Task UnlinkGameFromGenreAsync(int gameId, int genreId);
+    Task ClearGameGenresAsync(int gameId);
 }
