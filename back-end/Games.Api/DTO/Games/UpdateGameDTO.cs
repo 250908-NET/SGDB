@@ -7,4 +7,7 @@ public class UpdateGameDto
 
     public int DeveloperId { get; set; }   // FK to Company
     public int PublisherId { get; set; }   // FK to Company
+
+    public List<int> PlatformIds { get; set; } = new();
+    public List<int> GenreIds { get; set; } = new();
 }

@@ -55,6 +55,11 @@ public class GameService : IGameService
         await _repo.UnlinkGameFromPlatformAsync(gameId, platformId);
     }
 
+    public async Task ClearGamePlatformsAsync(int gameId)
+    {
+        await _repo.ClearGamePlatformsAsync(gameId);
+    }
+
     public async Task LinkGameToGenreAsync(int gameId, int genreId)
     {
         await _repo.LinkGameToGenreAsync(gameId, genreId);
@@ -69,4 +74,9 @@ public class GameService : IGameService
     {
         await _repo.UnlinkGameFromGenreAsync(gameId, genreId);
     }
+    public async Task ClearGameGenresAsync(int gameId)
+    {
+        await _repo.ClearGameGenresAsync(gameId);
+    }
+
 }
