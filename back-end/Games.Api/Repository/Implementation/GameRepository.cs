@@ -146,8 +146,11 @@ public class GameRepository : IGameRepository
     public async Task ClearGameGenresAsync(int gameId)
     {
         var links = await _context.GameGenres.Where(gg => gg.GameId == gameId).ToListAsync();
-        _context.GameGenres.RemoveRange(links);
-        await _context.SaveChangesAsync();
+        if (links.Any())
+        {
+            _context.GameGenres.RemoveRange(links);
+            await _context.SaveChangesAsync();
+        }
     }
 
     

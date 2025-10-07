@@ -4,5 +4,5 @@ public class GenreDto
 {
     public int GenreId { get; set; }
     public string Name { get; set; } = string.Empty;
-    public List<string> Games { get; set; } = new();
+    public List<int> Games { get; set; } = new();
 }

@@ -15,12 +15,16 @@ public class GenreRepository : IGenreRepository
 
     public async Task<List<Genre>> GetAllAsync()
     {
-        return await _context.Genres.ToListAsync();
+        return await _context.Genres
+            .Include(g => g.GameGenres).ThenInclude(gg => gg.Game)
+            .ToListAsync();
     }
 
     public async Task<Genre?> GetByIdAsync(int id)
     {
-        return await _context.Genres.FirstOrDefaultAsync(c => c.GenreId == id);
+        return await _context.Genres
+            .Include(g => g.GameGenres).ThenInclude(gg => gg.Game)
+            .FirstOrDefaultAsync(c => c.GenreId == id);
     }
 
     public async Task AddAsync(Genre Genre)
@@ -46,5 +50,15 @@ public class GenreRepository : IGenreRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    public async Task ClearGenreGamesAsync(int genreId)
+    {
+        var links = await _context.GameGenres.Where(gg => gg.GenreId == genreId).ToListAsync();
+        if (links.Any())
+        {
+            _context.GameGenres.RemoveRange(links);
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -64,9 +64,19 @@ namespace Games.Data
             CreateMap<Rating, RatingDto>().ReverseMap();
 
             // Genre mappings
-            CreateMap<Genre, GenreDto>().ReverseMap();
-            CreateMap<CreateGenreDto, Genre>();
-            CreateMap<UpdateGenreDto, Genre>();
+            CreateMap<Genre, GenreDto>()
+                .ForMember(dest => dest.Games,
+                    opt => opt.MapFrom(src =>
+                        src.GameGenres != null
+                            ? src.GameGenres.Select(gg => gg.GameId).ToList()
+                            : new List<int>()
+                    ));
+
+            CreateMap<CreateGenreDto, Genre>()
+                .ForMember(dest => dest.GameGenres, opt => opt.Ignore());
+
+            CreateMap<UpdateGenreDto, Genre>()
+                .ForMember(dest => dest.GameGenres, opt => opt.Ignore());
 
             // User mappings
             CreateMap<CreateUserDto, User>();

@@ -156,8 +156,8 @@ public class GamesController : ControllerBase
         }
 
 
-        // _mapper.Map(dto, game);
-        // await _service.UpdateAsync(game);
+        _mapper.Map(dto, game);
+        await _service.UpdateAsync(game);
         
 
         // Clear existing platform and genre links
@@ -175,8 +175,8 @@ public class GamesController : ControllerBase
         {
             await _service.LinkGameToGenreAsync(id, genreId);
         }
-        var updatedGame = await _service.GetByIdAsync(id);
-        return Ok(_mapper.Map<GameDto>(updatedGame));
+    
+        return Ok(_mapper.Map<GameDto>(game));
     }
 
     // Delete a game by Id
