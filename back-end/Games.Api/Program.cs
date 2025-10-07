@@ -1,3 +1,4 @@
+using System.Text;
 using AutoMapper;
 using Games.Controllers;
 using Games.Data;
@@ -5,7 +6,9 @@ using Games.DTOs;
 using Games.Models;
 using Games.Repositories;
 using Games.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,6 +47,7 @@ builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IAccessTokenRepository, AccessTokenRepository>();
 
 // Services
 builder.Services.AddScoped<IGameService, GameService>();
@@ -52,6 +56,7 @@ builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<ITokenServices, TokenService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -63,8 +68,45 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+// Auth
+string keyString = File.ReadAllText("../key.txt");
+// byte[] key = Encoding.ASCII.GetBytes(keyString);
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "Server",//builder.Configuration["Jwt:Issuer"],
+        ValidAudience = "User",//builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            Console.WriteLine("message recived");
+            if (context.Request.Cookies.ContainsKey("access_token"))
+            {
+                Console.WriteLine("Token from cookie: " + context.Request.Cookies["access_token"]);
+                context.Token = context.Request.Cookies["access_token"];
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+builder.Services.AddAuthorization(); // Add authorization services
+
 
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (builder.Environment.IsDevelopment())
 {
