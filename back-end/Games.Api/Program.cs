@@ -46,7 +46,6 @@ builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITokenServices, TokenService>();
 
-
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 

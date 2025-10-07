@@ -20,6 +20,7 @@ public class GamesDbContext : DbContext
     public DbSet<Rating> Ratings { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<UserGenre> UserGenres { get; set; } = null!;
+    public DbSet<UserGame> UserGames { get; set; } = null!;
 
     public DbSet<AccessToken> AccessToken { get; set; } = null!;
 
@@ -40,6 +41,9 @@ public class GamesDbContext : DbContext
 
         modelBuilder.Entity<UserGenre>()
             .HasKey(ug => new { ug.UserId, ug.GenreId });
+
+        modelBuilder.Entity<UserGame>()
+            .HasKey(ug => new { ug.UserId, ug.GameId });
 
         // Relationships
 
@@ -109,6 +113,12 @@ public class GamesDbContext : DbContext
         modelBuilder.Entity<UserGenre>()
             .HasOne(ug => ug.User)
             .WithMany(u => u.UserGenres)
+            .HasForeignKey(ug => ug.UserId);
+
+        // User to game
+        modelBuilder.Entity<UserGame>()
+            .HasOne(ug => ug.User)
+            .WithMany(u => u.GameLibrary)
             .HasForeignKey(ug => ug.UserId);
 
         // Genre to user

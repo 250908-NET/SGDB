@@ -22,7 +22,7 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .Include(u => u.GameLibrary)
             .Include(u => u.Ratings)
-            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
+            .Include(u => u.UserGenres)
             .ToListAsync();
     }
 
@@ -31,7 +31,7 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .Include(u => u.GameLibrary)
             .Include(u => u.Ratings)
-            .Include(u => u.UserGenres).ThenInclude(ug => ug.Genre)
+            .Include(u => u.UserGenres)
             .FirstOrDefaultAsync(g => g.UserId == id);
     }
     public async Task<User?> GetUserByUsername(string username)
@@ -43,6 +43,14 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(g => g.username == username);
     }
 
+    public async Task<User?> GetUserByUsernameAsync(string username)
+    {
+        return await _context.Users
+            .Include(u => u.GameLibrary)
+            .Include(u => u.Ratings)
+            .Include(u => u.UserGenres)
+            .FirstOrDefaultAsync(u => u.username.ToLower() == username.ToLower());
+    }
     public async Task AddUserAsync(User user)
     {
         await _context.Users.AddAsync(user);
@@ -86,6 +94,27 @@ public class UserRepository : IUserRepository
         if (link != null)
         {
             _context.UserGenres.Remove(link);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task LinkUserToGameAsync(int userId, int gameId)
+    {
+        var existingLink = await _context.UserGames.FindAsync(userId, gameId);
+
+        if (existingLink == null)
+        {
+            _context.UserGames.Add(new UserGame { UserId = userId, GameId = gameId });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UnlinkUserFromGameAsync(int userId, int gameId)
+    {
+        var link = await _context.UserGames.FindAsync(userId, gameId);
+        if (link != null)
+        {
+            _context.UserGames.Remove(link);
             await _context.SaveChangesAsync();
         }
     }

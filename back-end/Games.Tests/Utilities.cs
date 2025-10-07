@@ -14,6 +14,7 @@ public static class Utilities
         dbContext.Companies.RemoveRange(dbContext.Companies);
         dbContext.Genres.RemoveRange(dbContext.Genres);
         dbContext.Ratings.RemoveRange(dbContext.Ratings);
+        dbContext.Users.RemoveRange(dbContext.Users);
         await dbContext.SaveChangesAsync();
 
         // Seed platforms

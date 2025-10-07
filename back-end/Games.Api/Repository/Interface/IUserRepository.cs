@@ -7,7 +7,6 @@ namespace Games.Repositories;
 public interface IUserRepository
 {
     Task<List<User>> GetAllAsync();
-
     Task<User?> GetUserByIDAsync(int id);
 
     Task<User?> GetUserByUsername(string username);
@@ -21,5 +20,10 @@ public interface IUserRepository
     Task LinkUserToGenreAsync(int userId, int genreId);
     //Task UpdateUserGenreAsync(int userId, int oldGenreId, int newGenreId);
     Task UnlinkUserFromGenreAsync(int userId, int genreId);
+
+    Task LinkUserToGameAsync(int userId, int gameId);
+    Task UnlinkUserFromGameAsync(int userId, int gameId);
+
+    Task<User?> GetUserByUsernameAsync(string username);
 
 }

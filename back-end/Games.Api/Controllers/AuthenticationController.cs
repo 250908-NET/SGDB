@@ -40,7 +40,7 @@ public class AuthenticationController : ControllerBase
         _logger.LogInformation("Creating Account {@dto}", dto);
         var user = _mapper.Map<User>(dto);
         await _service.AddUserAsync(user);
-        User? USER = await _service.GetUserByusername(dto.username);
+        User? USER = await _service.GetUserByUsernameAsync(dto.username);
         string accessTokenString = _tokenservice.GenerateAccessToken();
         Response.Cookies.Append("access_token", accessTokenString, new CookieOptions
         {
@@ -61,8 +61,6 @@ public class AuthenticationController : ControllerBase
         await _accessTokenRepo.AddAsync(TokenObject);
         await _accessTokenRepo.SaveChangesAsync();
 
-
-        // return Created($"/api/users/{user.UserId}", _mapper.Map<UserDto>(user));
         return Ok(new { message = "Account Created" });
     }
 
@@ -70,7 +68,7 @@ public class AuthenticationController : ControllerBase
     [HttpPost("LoginAccount")]
     public async Task<ActionResult<UserDto>> LoginAccount([FromBody] CreateUserDto dto)
     {
-        var user = await _service.GetUserByusername(dto.username);
+        var user = await _service.GetUserByUsernameAsync(dto.username);
         if (user == null)
         {
             return NotFound(new { message = "Invalid username or password" });
@@ -120,13 +118,12 @@ public class AuthenticationController : ControllerBase
                 Response.Cookies.Delete("access_token");
                 return Ok(new { message = "LoggedOut " });
             }
-            // return Ok(new { message = tokenString });
             return Unauthorized();
         }
         return Unauthorized();
     }
 
-    // [Microsoft.AspNetCore.Authorization.Authorize]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("TestAuthorization")]
     public async Task<IActionResult> TestAuth()
     {

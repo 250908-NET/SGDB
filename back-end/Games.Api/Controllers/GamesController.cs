@@ -18,23 +18,25 @@ public class GamesController : ControllerBase
     private readonly IGameService _service;
     private readonly IPlatformService _platformService;
     private readonly IGenreService _genreService;
+    private readonly ICompanyService _companyService;
     private readonly IMapper _mapper;
 
-    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IGenreService genreService, IMapper mapper)
+    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IGenreService genreService, ICompanyService companyService, IMapper mapper)
     {
         _logger = logger;
         _service = gameService;
         _platformService = platformService;
         _genreService = genreService;
+        _companyService = companyService;
         _mapper = mapper;
     }
 
-    // Get all games
+    // Get games. If no query string, get all games. If query string, then filter games according to query parameters.
     [HttpGet(Name = "GetAllGames")]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetGames([FromQuery] string? name)
     {
-        _logger.LogInformation("Getting all games");
-        var games = await _service.GetAllAsync();
+        _logger.LogInformation(name is null ? "Getting all games" : $"Getting all games containing \"{name}\" in name");
+        var games = await _service.GetGames(name);
         return Ok(_mapper.Map<List<GameDto>>(games));
     }
 
@@ -54,8 +56,56 @@ public class GamesController : ControllerBase
     public async Task<IActionResult> CreateAsync([FromBody] CreateGameDto dto)
     {
         _logger.LogInformation("Creating game {@dto}", dto);
+        
+        // Validate if Publisher exists
+        var publisher = await _companyService.GetByIdAsync(dto.PublisherId);
+        if (publisher is null)
+        {
+            return NotFound($"Publisher with ID {dto.PublisherId} not found.");
+        }
+
+        // Validate if Developer exists
+        var developer = await _companyService.GetByIdAsync(dto.DeveloperId);
+        if (developer is null)
+        {
+            return NotFound($"Developer with ID {dto.DeveloperId} not found.");
+        }
+
+        // Validate if all referenced platforms exist
+        var validPlatforms = new List<int>();
+        foreach (var pid in dto.PlatformIds.Distinct())
+        {
+            var platform = await _platformService.GetByIdAsync(pid);
+            if (platform is null)
+                return NotFound($"Platform with ID {pid} not found.");
+            validPlatforms.Add(pid);
+        }
+
+        // Validate all referenced genres exist
+        var validGenres = new List<int>();
+        foreach (var gid in dto.GenreIds.Distinct())
+        {
+            var genre = await _genreService.GetByIdAsync(gid);
+            if (genre is null)
+                return NotFound($"Genre with ID {gid} not found.");
+            validGenres.Add(gid);
+        }
+
         var game = _mapper.Map<Game>(dto);
         await _service.CreateAsync(game);
+        
+        // Link platforms
+        foreach (var platformId in validPlatforms)
+        {
+            await _service.LinkGameToPlatformAsync(game.GameId, platformId);
+        }
+
+        // Link genres
+        foreach (var genreId in validGenres)
+        {
+            await _service.LinkGameToGenreAsync(game.GameId, genreId);
+        }
+
         return Created($"/api/games/{game.GameId}", _mapper.Map<GameDto>(game));
     }
 
@@ -67,13 +117,66 @@ public class GamesController : ControllerBase
         var game = await _service.GetByIdAsync(id);
         if (game is null)
         {
+            _logger.LogInformation("Game not found with {id}", id);
             return NotFound("Game not found");
         }
 
-        _mapper.Map(dto, game);
-        await _service.UpdateAsync(game);
+        // Validate if Publisher exists
+        var publisher = await _companyService.GetByIdAsync(dto.PublisherId);
+        if (publisher is null)
+        {
+            return NotFound($"Publisher with ID {dto.PublisherId} not found.");
+        }
 
-        return Ok(_mapper.Map<GameDto>(game));
+        // Validate if Developer exists
+        var developer = await _companyService.GetByIdAsync(dto.DeveloperId);
+        if (developer is null)
+        {
+            return NotFound($"Developer with ID {dto.DeveloperId} not found.");
+        }
+
+        // Validate if all referenced platforms exist
+        var validPlatforms = new List<int>();
+        foreach (var pid in dto.PlatformIds.Distinct())
+        {
+            var platform = await _platformService.GetByIdAsync(pid);
+            if (platform is null)
+                return NotFound($"Platform with ID {pid} not found.");
+            validPlatforms.Add(pid);
+        }
+
+        // Validate all referenced genres exist
+        var validGenres = new List<int>();
+        foreach (var gid in dto.GenreIds.Distinct())
+        {
+            var genre = await _genreService.GetByIdAsync(gid);
+            if (genre is null)
+                return NotFound($"Genre with ID {gid} not found.");
+            validGenres.Add(gid);
+        }
+
+
+        // _mapper.Map(dto, game);
+        // await _service.UpdateAsync(game);
+        
+
+        // Clear existing platform and genre links
+        await _service.ClearGamePlatformsAsync(id);
+        await _service.ClearGameGenresAsync(id);
+
+        // Link platforms
+        foreach (var platformId in validPlatforms)
+        {
+            await _service.LinkGameToPlatformAsync(id, platformId);
+        }
+
+        // Link genres
+        foreach (var genreId in validGenres)
+        {
+            await _service.LinkGameToGenreAsync(id, genreId);
+        }
+        var updatedGame = await _service.GetByIdAsync(id);
+        return Ok(_mapper.Map<GameDto>(updatedGame));
     }
 
     // Delete a game by Id
@@ -86,10 +189,16 @@ public class GamesController : ControllerBase
         {
             return NotFound("Game not found");
         }
+
+        // Clear all links to gameId
+        await _service.ClearGamePlatformsAsync(id);
+        await _service.ClearGameGenresAsync(id);
+
         await _service.DeleteAsync(id);
         return NoContent();
     }
 
+    // MAYBE CAN DELETE TBD
     // Link game to platform
     [HttpPost("{gameId}/platforms/{platformId}")]
     public async Task<IActionResult> LinkGameToPlatform(int gameId, int platformId)
@@ -191,7 +300,7 @@ public class GamesController : ControllerBase
         return NoContent();
     }
 
-    
+
     // Link game to genre
     [HttpPost("{gameId}/genres/{genreId}")]
     public async Task<IActionResult> LinkGameToGenre(int gameId, int genreId)

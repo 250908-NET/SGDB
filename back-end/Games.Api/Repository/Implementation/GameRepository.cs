@@ -23,6 +23,18 @@ public class GameRepository : IGameRepository
             .ToListAsync();
     }
 
+    public async Task<List<Game>> GetAllMatchingAsync(string? name)
+    {
+        var query = _context.Games.AsQueryable();
+
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Query parameter cannot be empty or whitespace.", nameof(name));
+
+        query = query.Where(g => EF.Functions.Like(g.Name, $"%{name}%"));
+
+        return await query.ToListAsync();
+    }
+
     public async Task<Game?> GetByIdAsync(int id)
     {
         return await _context.Games
@@ -91,6 +103,13 @@ public class GameRepository : IGameRepository
         }
     }
 
+    public async Task ClearGamePlatformsAsync(int gameId)
+    {
+        var links = await _context.GamePlatforms.Where(gp => gp.GameId == gameId).ToListAsync();
+        _context.GamePlatforms.RemoveRange(links);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task LinkGameToGenreAsync(int gameId, int genreId)
     {
         var existingLink = await _context.GameGenres.FindAsync(gameId, genreId);
@@ -122,7 +141,16 @@ public class GameRepository : IGameRepository
             _context.GameGenres.Remove(link);
             await _context.SaveChangesAsync();
         }
-    } 
+    }
+
+    public async Task ClearGameGenresAsync(int gameId)
+    {
+        var links = await _context.GameGenres.Where(gg => gg.GameId == gameId).ToListAsync();
+        _context.GameGenres.RemoveRange(links);
+        await _context.SaveChangesAsync();
+    }
+
+    
 
 
 }

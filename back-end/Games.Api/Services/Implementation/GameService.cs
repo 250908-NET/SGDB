@@ -12,7 +12,13 @@ public class GameService : IGameService
         _repo = repo ?? throw new ArgumentNullException(nameof(repo));
     }
 
-    public async Task<List<Game>> GetAllAsync() => await _repo.GetAllAsync();
+    public async Task<List<Game>> GetGames(string? name)
+    {
+        if (name is null)
+            return await _repo.GetAllAsync();
+        else
+            return await _repo.GetAllMatchingAsync(name);
+    }
 
     public async Task<Game?> GetByIdAsync(int id) => await _repo.GetByIdAsync(id);
 
@@ -48,7 +54,12 @@ public class GameService : IGameService
     {
         await _repo.UnlinkGameFromPlatformAsync(gameId, platformId);
     }
-    
+
+    public async Task ClearGamePlatformsAsync(int gameId)
+    {
+        await _repo.ClearGamePlatformsAsync(gameId);
+    }
+
     public async Task LinkGameToGenreAsync(int gameId, int genreId)
     {
         await _repo.LinkGameToGenreAsync(gameId, genreId);
@@ -63,4 +74,9 @@ public class GameService : IGameService
     {
         await _repo.UnlinkGameFromGenreAsync(gameId, genreId);
     }
+    public async Task ClearGameGenresAsync(int gameId)
+    {
+        await _repo.ClearGameGenresAsync(gameId);
+    }
+
 }
