@@ -13,12 +13,16 @@ public class RatingController : ControllerBase
 {
     private readonly ILogger<RatingController> _logger;
     private readonly IRatingService _service;
+    private readonly IGameService _gameService;
+    private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
-    public RatingController(ILogger<RatingController> logger, IRatingService ratingService, IMapper mapper)
+    public RatingController(ILogger<RatingController> logger, IRatingService ratingService, IGameService gameService, IUserService userService, IMapper mapper)
     {
         _logger = logger;
         _service = ratingService;
+        _gameService = gameService;
+        _userService = userService;
         _mapper = mapper;
     }
 
@@ -68,13 +72,21 @@ public class RatingController : ControllerBase
     public async Task<IActionResult> CreateAsync([FromBody] RatingDto dto)
     {
 
-         if (dto == null)
+        if (dto == null)
             return BadRequest("Rating data is required.");
 
         var existingRatings = await _service.GetByUserIdAsync(dto.UserId);
+        var user = await _userService.GetUserByIdAsync(dto.UserId);
+        var game = await _gameService.GetByIdAsync(dto.GameId);
         if (existingRatings.Any(r => r.GameId == dto.GameId))
             return Conflict("Rating already exists for this user and game.");
 
+        if (user == null)
+            return NotFound("User not found.");
+
+        if (game == null)
+            return NotFound("Game not found.");
+        
         var errors = new List<string>();
 
         if (dto.Rate < 1 || dto.Rate > 10)
@@ -96,8 +108,10 @@ public class RatingController : ControllerBase
     [HttpPut("{userId}/{gameId}", Name = "UpdateRating")]
     public async Task<IActionResult> UpdateAsync(int userId, int gameId, [FromBody] RatingDto dto)
     {
-        if (userId != dto.UserId || gameId != dto.GameId)
-            return BadRequest("Composite key mismatch");
+        // if (userId != dto.UserId || gameId != dto.GameId)
+        //     return BadRequest("Composite key mismatch");
+        dto.UserId = userId;
+        dto.GameId = gameId;    
 
         var userRatings = await _service.GetByUserIdAsync(userId);
         var existing = userRatings.FirstOrDefault(r => r.GameId == gameId);
