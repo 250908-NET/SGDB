@@ -19,15 +19,17 @@ public class GamesController : ControllerBase
     private readonly IPlatformService _platformService;
     private readonly IGenreService _genreService;
     private readonly ICompanyService _companyService;
+    private readonly IGameImageService _imageService;
     private readonly IMapper _mapper;
 
-    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IGenreService genreService, ICompanyService companyService, IMapper mapper)
+    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IGenreService genreService, ICompanyService companyService, IGameImageService  imageService, IMapper mapper)
     {
         _logger = logger;
         _service = gameService;
         _platformService = platformService;
         _genreService = genreService;
         _companyService = companyService;
+         _imageService = imageService;
         _mapper = mapper;
     }
 
@@ -156,8 +158,16 @@ public class GamesController : ControllerBase
         }
 
 
-        // _mapper.Map(dto, game);
-        // await _service.UpdateAsync(game);
+        _mapper.Map(dto, game);
+
+        // Automatically update image if name changed and ImageUrl was not provided
+        if (string.IsNullOrWhiteSpace(dto.ImageUrl) || !string.Equals(game.Name, dto.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            var imageUrl = await _imageService.GetGameImageUrlAsync(dto.Name);
+            game.ImageUrl = imageUrl ?? game.ImageUrl;
+        }
+
+        await _service.UpdateAsync(game);
         
 
         // Clear existing platform and genre links

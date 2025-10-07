@@ -10,4 +10,6 @@ public class CreateGameDto
 
     public List<int> PlatformIds { get; set; } = new();
     public List<int> GenreIds { get; set; } = new();
+
+    public string? ImageUrl { get; set; }
 }
