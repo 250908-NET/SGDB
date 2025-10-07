@@ -21,6 +21,8 @@ public class GamesDbContext : DbContext
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<UserGenre> UserGenres { get; set; } = null!;
 
+    public DbSet<AccessToken> AccessToken { get; set; } = null!;
+
 
 
     //public DbSet<User> User { get; set; } = null!;

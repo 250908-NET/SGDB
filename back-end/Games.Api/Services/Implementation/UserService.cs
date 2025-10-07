@@ -16,6 +16,7 @@ namespace Games.Services
 
         public async Task<User?> GetUserByIdAsync(int id) => await _repo.GetUserByIDAsync(id);
 
+        public async Task<User?> GetUserByusername(string username) => await _repo.GetUserByUsername(username);
         public async Task AddUserAsync(User user)
         {
             await _repo.AddUserAsync(user);

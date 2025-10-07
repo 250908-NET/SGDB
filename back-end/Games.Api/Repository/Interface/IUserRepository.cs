@@ -10,6 +10,8 @@ public interface IUserRepository
 
     Task<User?> GetUserByIDAsync(int id);
 
+    Task<User?> GetUserByUsername(string username);
+
     Task AddUserAsync(User user);
     Task ChangeUserAsync(User user);
     Task RemoveUserAsync(int id);
