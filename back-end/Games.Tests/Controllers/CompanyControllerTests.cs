@@ -15,6 +15,7 @@ namespace Games.Tests.Controllers
     public class CompanyControllerTests
     {
         private readonly Mock<ICompanyService> _mockService;
+        private readonly Mock<IGameService> _mockGameService;
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<ILogger<CompanyController>> _mockLogger;
         private readonly CompanyController _controller;
@@ -22,10 +23,11 @@ namespace Games.Tests.Controllers
         public CompanyControllerTests()
         {
             _mockService = new Mock<ICompanyService>();
+            _mockGameService = new Mock<IGameService>();
             _mockMapper = new Mock<IMapper>();
             _mockLogger = new Mock<ILogger<CompanyController>>();
 
-            _controller = new CompanyController(_mockLogger.Object, _mockService.Object, _mockMapper.Object);
+            _controller = new CompanyController(_mockLogger.Object, _mockService.Object, _mockGameService.Object, _mockMapper.Object);
         }
 
         [Fact]

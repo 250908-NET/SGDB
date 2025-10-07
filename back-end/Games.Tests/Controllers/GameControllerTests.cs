@@ -18,6 +18,7 @@ namespace Games.Tests.Controllers
         private readonly Mock<IGameService> _gameServiceMock;
         private readonly Mock<IPlatformService> _platformServiceMock;
         private readonly Mock<IGenreService> _genreServiceMock;
+        private readonly Mock<ICompanyService> _companyServiceMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly GamesController _controller;
 
@@ -27,6 +28,7 @@ namespace Games.Tests.Controllers
             _gameServiceMock = new Mock<IGameService>();
             _platformServiceMock = new Mock<IPlatformService>();
             _genreServiceMock = new Mock<IGenreService>();
+            _companyServiceMock = new Mock<ICompanyService>();
             _mapperMock = new Mock<IMapper>();
 
             _controller = new GamesController(
@@ -34,6 +36,7 @@ namespace Games.Tests.Controllers
                 _gameServiceMock.Object,
                 _platformServiceMock.Object,
                 _genreServiceMock.Object,
+                _companyServiceMock.Object,
                 _mapperMock.Object
             );
         }
@@ -93,9 +96,24 @@ namespace Games.Tests.Controllers
         [Fact]
         public async Task CreateAsync_ShouldReturnCreatedResult()
         {
-            var createDto = new CreateGameDto { Name = "New Game" };
+            var createDto = new CreateGameDto
+            {
+                Name = "New Game",
+                PublisherId = 1,
+                DeveloperId = 2,
+                PlatformIds = new List<int> { 3 },
+                GenreIds = new List<int> { 4 }
+            };
             var game = new Game { GameId = 1, Name = "New Game" };
             var dto = new GameDto { GameId = 1, Name = "New Game" };
+
+            // Mock company existence
+            _companyServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new Company { CompanyId = 1 });
+            _companyServiceMock.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(new Company { CompanyId = 2 });
+
+            // Mock platform & genre existence
+            _platformServiceMock.Setup(s => s.GetByIdAsync(3)).ReturnsAsync(new Platform { PlatformId = 3 });
+            _genreServiceMock.Setup(s => s.GetByIdAsync(4)).ReturnsAsync(new Genre { GenreId = 4 });
 
             _mapperMock.Setup(m => m.Map<Game>(createDto)).Returns(game);
             _mapperMock.Setup(m => m.Map<GameDto>(game)).Returns(dto);
@@ -105,7 +123,12 @@ namespace Games.Tests.Controllers
             var created = Assert.IsType<CreatedResult>(result);
             var value = Assert.IsType<GameDto>(created.Value);
             Assert.Equal(1, value.GameId);
+
+            // Verify linking methods called
+            _gameServiceMock.Verify(s => s.LinkGameToPlatformAsync(1, 3), Times.Once);
+            _gameServiceMock.Verify(s => s.LinkGameToGenreAsync(1, 4), Times.Once);
         }
+
 
         // ---------------------------------------------------
         // UPDATE /api/games/{id}
@@ -114,11 +137,24 @@ namespace Games.Tests.Controllers
         public async Task UpdateAsync_ShouldReturnOk_WhenSuccessful()
         {
             var existing = new Game { GameId = 1, Name = "Old Name" };
-            var dto = new UpdateGameDto { Name = "New Name" };
+            var dto = new UpdateGameDto
+            {
+                Name = "New Name",
+                PublisherId = 1,
+                DeveloperId = 2,
+                PlatformIds = new List<int> { 3 },
+                GenreIds = new List<int> { 4 }
+            };
             var mappedDto = new GameDto { GameId = 1, Name = "New Name" };
 
             _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(existing);
-            _mapperMock.Setup(m => m.Map(dto, existing));
+
+            _companyServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new Company { CompanyId = 1 });
+            _companyServiceMock.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(new Company { CompanyId = 2 });
+            _platformServiceMock.Setup(s => s.GetByIdAsync(3)).ReturnsAsync(new Platform { PlatformId = 3 });
+            _genreServiceMock.Setup(s => s.GetByIdAsync(4)).ReturnsAsync(new Genre { GenreId = 4 });
+
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(existing);
             _mapperMock.Setup(m => m.Map<GameDto>(existing)).Returns(mappedDto);
 
             var result = await _controller.UpdateAsync(1, dto);
@@ -126,7 +162,13 @@ namespace Games.Tests.Controllers
             var ok = Assert.IsType<OkObjectResult>(result);
             var value = Assert.IsType<GameDto>(ok.Value);
             Assert.Equal("New Name", value.Name);
+
+            _gameServiceMock.Verify(s => s.ClearGamePlatformsAsync(1), Times.Once);
+            _gameServiceMock.Verify(s => s.ClearGameGenresAsync(1), Times.Once);
+            _gameServiceMock.Verify(s => s.LinkGameToPlatformAsync(1, 3), Times.Once);
+            _gameServiceMock.Verify(s => s.LinkGameToGenreAsync(1, 4), Times.Once);
         }
+
 
         [Fact]
         public async Task UpdateAsync_ShouldReturnNotFound_WhenGameMissing()
