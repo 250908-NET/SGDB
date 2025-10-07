@@ -16,6 +16,18 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll",
+            policy => policy.AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod());
+    });
+}
+
+
 // EF Core DbContext
 if (!builder.Environment.IsEnvironment("Testing"))
 {
@@ -53,6 +65,11 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+if (builder.Environment.IsDevelopment())
+{
+    app.UseCors("AllowAll");
+}
 
 // Log each HTTP request
 app.UseSerilogRequestLogging(opts =>
