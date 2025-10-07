@@ -9,25 +9,18 @@ namespace Games.Data
         public MappingProfile()
         {
             // Game mappings
-            // CreateMap<Game, GameDto>()
-            //     .ForMember(dest => dest.Platforms,
-            //         opt => opt.MapFrom(src =>
-            //             src.GamePlatforms != null
-            //                 ? src.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
-            //                 : new List<string>()
-            //         ));
             CreateMap<Game, GameDto>()
                 .ForMember(dest => dest.Platforms,
                     opt => opt.MapFrom(src =>
                         src.GamePlatforms != null
-                            ? src.GamePlatforms.Select(gp => gp.Platform.Name).ToList()
-                            : new List<string>()
+                            ? src.GamePlatforms.Select(gp => gp.Platform.PlatformId).ToList()
+                            : new List<int>()
                     ))
                 .ForMember(dest => dest.Genres,
                     opt => opt.MapFrom(src =>
                         src.GameGenres != null
-                            ? src.GameGenres.Select(gg => gg.Genre.Name).ToList()
-                            : new List<string>()
+                            ? src.GameGenres.Select(gg => gg.Genre.GenreId).ToList()
+                            : new List<int>()
                     ));
             CreateMap<CreateGameDto, Game>();
             CreateMap<UpdateGameDto, Game>();
@@ -49,17 +42,23 @@ namespace Games.Data
                 .ForMember(dest => dest.DevelopedGames,
                     opt => opt.MapFrom(src =>
                         src.DevelopedGames != null
-                            ? src.DevelopedGames.Select(g => g.Name).ToList()
-                            : new List<string>()
+                            ? src.DevelopedGames.Select(g => g.GameId).ToList()
+                            : new List<int>()
                     ))
                 .ForMember(dest => dest.PublishedGames,
                     opt => opt.MapFrom(src =>
                         src.PublishedGames != null
-                            ? src.PublishedGames.Select(g => g.Name).ToList()
-                            : new List<string>()
+                            ? src.PublishedGames.Select(g => g.GameId).ToList()
+                            : new List<int>()
                     ));
-            CreateMap<CreateCompanyDto, Company>();
-            CreateMap<UpdateCompanyDto, Company>();
+
+            CreateMap<CreateCompanyDto, Company>()
+                .ForMember(dest => dest.DevelopedGames, opt => opt.Ignore())
+                .ForMember(dest => dest.PublishedGames, opt => opt.Ignore());
+
+            CreateMap<UpdateCompanyDto, Company>()
+                .ForMember(dest => dest.DevelopedGames, opt => opt.Ignore())
+                .ForMember(dest => dest.PublishedGames, opt => opt.Ignore());
 
             //Rating mappings
             CreateMap<Rating, RatingDto>().ReverseMap();

@@ -15,14 +15,16 @@ public class CompanyController : ControllerBase
     //private readonly GamesDbContext _context;
     private readonly ILogger<CompanyController> _logger;
     private readonly ICompanyService _service;
+    private readonly IGameService _gameService;
     private readonly IMapper _mapper;
 
 
-    public CompanyController(ILogger<CompanyController> logger, ICompanyService service, IMapper mapper)
+    public CompanyController(ILogger<CompanyController> logger, ICompanyService service, IGameService gameService, IMapper mapper)
     {
         _logger = logger;
         _service = service;
         _mapper = mapper;
+        _gameService = gameService;
     }
 
     // Get all companies
@@ -40,7 +42,12 @@ public class CompanyController : ControllerBase
     {
         _logger.LogInformation("Getting company {id}", id);
         var company = await _service.GetByIdAsync(id);
-        if (company is null) return NotFound("Company not found");
+        if (company is null)
+        {
+            _logger.LogWarning("Company with ID {id} not found.", id);
+            return NotFound("Company not found");
+        }
+
         return Ok(_mapper.Map<CompanyDto>(company));
     }
 
@@ -51,6 +58,34 @@ public class CompanyController : ControllerBase
         _logger.LogInformation("Creating company {@dto}", dto);
         var company = _mapper.Map<Company>(dto);
         await _service.CreateAsync(company);
+
+        foreach (var gameId in dto.DevelopedGames.Distinct())
+        {
+            var game = await _gameService.GetByIdAsync(gameId);
+            if (game is null)
+            {
+                _logger.LogWarning("Developed game ID {id} not found.", gameId);
+                return NotFound($"Developed game ID {gameId} not found.");
+            }
+
+            game.DeveloperId = company.CompanyId;
+            await _gameService.UpdateAsync(game);
+        }
+
+        foreach (var gameId in dto.PublishedGames.Distinct())
+        {
+            var game = await _gameService.GetByIdAsync(gameId);
+            if (game is null)
+            {
+                _logger.LogWarning("Published game ID {id} not found.", gameId);
+                return NotFound($"Published game ID {gameId} not found.");
+            }
+
+            game.PublisherId = company.CompanyId;
+            await _gameService.UpdateAsync(game);
+        }
+
+        
         return Created($"/api/company/{company.CompanyId}", _mapper.Map<CompanyDto>(company));
     }
 
@@ -59,16 +94,45 @@ public class CompanyController : ControllerBase
     public async Task<IActionResult> UpdateCompany(int id, UpdateCompanyDto dto)
     {
         _logger.LogInformation("Updating company {id}", id);
-        var company = await _service.GetByIdAsync(id);
-        if (company is null)
+        var updatedCompany = await _service.GetByIdAsync(id);
+
+        // Check to see if company exists
+        if (updatedCompany is null)
         {
             return NotFound("Company not found");
         }
 
-        _mapper.Map(dto, company);
-        await _service.UpdateAsync(company);
+        // Check and update referenced developed games
+        
+        foreach (var gameId in dto.DevelopedGames.Distinct())
+        {
+            var game = await _gameService.GetByIdAsync(gameId);
+            if (game is null)
+            {
+                _logger.LogWarning("Developed game ID {id} not found.", gameId);
+                return NotFound($"Developed game ID {gameId} not found.");
+            }
 
-        return Ok(_mapper.Map<CompanyDto>(company));
+            game.DeveloperId = id;
+            await _gameService.UpdateAsync(game);
+        }
+
+        // Check and update referenced published games
+        foreach (var gameId in dto.PublishedGames.Distinct())
+        {
+            var game = await _gameService.GetByIdAsync(gameId);
+            if (game is null)
+            {
+                _logger.LogWarning("Published game ID {id} not found.", gameId);
+                return NotFound($"Published game ID {gameId} not found.");
+            }
+
+            game.PublisherId = id;
+            await _gameService.UpdateAsync(game);
+        }
+
+
+        return Ok(_mapper.Map<CompanyDto>(updatedCompany));
     }
 
     /// DELETE: delete company
@@ -77,8 +141,12 @@ public class CompanyController : ControllerBase
     {
         _logger.LogInformation("Deleting company {id}", id);
         var company = await _service.GetByIdAsync(id);
-        if (company is null) return NotFound("Company not found");
 
+        if (company is null)
+        {
+            _logger.LogWarning("Company with ID {id} not found.", id);
+            return NotFound("Company not found");
+        }
         await _service.DeleteAsync(id);
         return NoContent();
     }

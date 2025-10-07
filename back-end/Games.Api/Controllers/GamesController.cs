@@ -156,8 +156,8 @@ public class GamesController : ControllerBase
         }
 
 
-        _mapper.Map(dto, game);
-        await _service.UpdateAsync(game);
+        // _mapper.Map(dto, game);
+        // await _service.UpdateAsync(game);
         
 
         // Clear existing platform and genre links
