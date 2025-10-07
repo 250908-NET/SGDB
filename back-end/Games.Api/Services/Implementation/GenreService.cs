@@ -33,4 +33,11 @@ public class GenreService : IGenreService
         await _repo.DeleteAsync(id);
         await _repo.SaveChangesAsync();
     }
+
+    public async Task ClearGenreGamesAsync(int genreId)
+    {
+        await _repo.ClearGenreGamesAsync(genreId);
+    }
+
+
 }
