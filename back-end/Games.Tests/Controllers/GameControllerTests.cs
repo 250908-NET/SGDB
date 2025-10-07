@@ -1,0 +1,208 @@
+using Xunit;
+using Moq;
+using AutoMapper;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
+using Games.Controllers;
+using Games.Services;
+using Games.Models;
+using Games.DTOs;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Games.Tests.Controllers
+{
+    public class GamesControllerTests
+    {
+        private readonly Mock<ILogger<GamesController>> _loggerMock;
+        private readonly Mock<IGameService> _gameServiceMock;
+        private readonly Mock<IPlatformService> _platformServiceMock;
+        private readonly Mock<IGenreService> _genreServiceMock;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly GamesController _controller;
+
+        public GamesControllerTests()
+        {
+            _loggerMock = new Mock<ILogger<GamesController>>();
+            _gameServiceMock = new Mock<IGameService>();
+            _platformServiceMock = new Mock<IPlatformService>();
+            _genreServiceMock = new Mock<IGenreService>();
+            _mapperMock = new Mock<IMapper>();
+
+            _controller = new GamesController(
+                _loggerMock.Object,
+                _gameServiceMock.Object,
+                _platformServiceMock.Object,
+                _genreServiceMock.Object,
+                _mapperMock.Object
+            );
+        }
+
+        // ---------------------------------------------------
+        // GET ALL /api/games
+        // ---------------------------------------------------
+        [Fact]
+        public async Task GetGames_ShouldReturnOk_WithListOfGames()
+        {
+            var games = new List<Game> { new Game { GameId = 1, Name = "Halo" } };
+            var gameDtos = new List<GameDto> { new GameDto { GameId = 1, Name = "Halo" } };
+
+            _gameServiceMock.Setup(s => s.GetGames(null)).ReturnsAsync(games);
+            _mapperMock.Setup(m => m.Map<List<GameDto>>(games)).Returns(gameDtos);
+
+            var result = await _controller.GetGames(null);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<List<GameDto>>(okResult.Value);
+            Assert.Single(value);
+        }
+
+        // ---------------------------------------------------
+        // GET BY ID /api/games/{id}
+        // ---------------------------------------------------
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnOk_WhenGameExists()
+        {
+            var game = new Game { GameId = 1, Name = "Halo" };
+            var dto = new GameDto { GameId = 1, Name = "Halo" };
+
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(game);
+            _mapperMock.Setup(m => m.Map<GameDto>(game)).Returns(dto);
+
+            var result = await _controller.GetByIdAsync(1);
+
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<GameDto>(ok.Value);
+            Assert.Equal(1, value.GameId);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnNotFound_WhenGameMissing()
+        {
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync((Game?)null);
+
+            var result = await _controller.GetByIdAsync(1);
+
+            var notFound = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Game not found", notFound.Value);
+        }
+
+        // ---------------------------------------------------
+        // CREATE /api/games
+        // ---------------------------------------------------
+        [Fact]
+        public async Task CreateAsync_ShouldReturnCreatedResult()
+        {
+            var createDto = new CreateGameDto { Name = "New Game" };
+            var game = new Game { GameId = 1, Name = "New Game" };
+            var dto = new GameDto { GameId = 1, Name = "New Game" };
+
+            _mapperMock.Setup(m => m.Map<Game>(createDto)).Returns(game);
+            _mapperMock.Setup(m => m.Map<GameDto>(game)).Returns(dto);
+
+            var result = await _controller.CreateAsync(createDto);
+
+            var created = Assert.IsType<CreatedResult>(result);
+            var value = Assert.IsType<GameDto>(created.Value);
+            Assert.Equal(1, value.GameId);
+        }
+
+        // ---------------------------------------------------
+        // UPDATE /api/games/{id}
+        // ---------------------------------------------------
+        [Fact]
+        public async Task UpdateAsync_ShouldReturnOk_WhenSuccessful()
+        {
+            var existing = new Game { GameId = 1, Name = "Old Name" };
+            var dto = new UpdateGameDto { Name = "New Name" };
+            var mappedDto = new GameDto { GameId = 1, Name = "New Name" };
+
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(existing);
+            _mapperMock.Setup(m => m.Map(dto, existing));
+            _mapperMock.Setup(m => m.Map<GameDto>(existing)).Returns(mappedDto);
+
+            var result = await _controller.UpdateAsync(1, dto);
+
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsType<GameDto>(ok.Value);
+            Assert.Equal("New Name", value.Name);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldReturnNotFound_WhenGameMissing()
+        {
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync((Game?)null);
+            var result = await _controller.UpdateAsync(1, new UpdateGameDto());
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        // ---------------------------------------------------
+        // DELETE /api/games/{id}
+        // ---------------------------------------------------
+        [Fact]
+        public async Task DeleteAsync_ShouldReturnNoContent_WhenSuccessful()
+        {
+            var game = new Game { GameId = 1 };
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(game);
+
+            var result = await _controller.DeleteAsync(1);
+
+            Assert.IsType<NoContentResult>(result);
+            _gameServiceMock.Verify(s => s.DeleteAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ShouldReturnNotFound_WhenGameMissing()
+        {
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync((Game?)null);
+
+            var result = await _controller.DeleteAsync(1);
+
+            var notFound = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Game not found", notFound.Value);
+        }
+
+        [Fact]
+        public async Task LinkGameToPlatform_ShouldReturnNotFound_WhenGameMissing()
+        {
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync((Game?)null);
+
+            var result = await _controller.LinkGameToPlatform(1, 2);
+
+            var notFound = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Contains("Game with ID 1", notFound.Value!.ToString());
+        }
+
+        [Fact]
+        public async Task LinkGameToPlatform_ShouldReturnNotFound_WhenPlatformMissing()
+        {
+            var game = new Game { GameId = 1 };
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(game);
+            _platformServiceMock.Setup(s => s.GetByIdAsync(2)).ReturnsAsync((Platform?)null);
+
+            var result = await _controller.LinkGameToPlatform(1, 2);
+
+            var notFound = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Contains("Platform with ID 2", notFound.Value!.ToString());
+        }
+
+        [Fact]
+        public async Task LinkGameToPlatform_ShouldReturnBadRequest_WhenAlreadyLinked()
+        {
+            var game = new Game
+            {
+                GameId = 1,
+                GamePlatforms = new List<GamePlatform> { new GamePlatform { PlatformId = 2 } }
+            };
+
+            var platform = new Platform { PlatformId = 2 };
+            _gameServiceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(game);
+            _platformServiceMock.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(platform);
+
+            var result = await _controller.LinkGameToPlatform(1, 2);
+
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("This game is already linked to that platform.", bad.Value);
+        }
+    }
+}
