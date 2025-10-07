@@ -1,158 +1,145 @@
-using FluentAssertions;
-using Moq;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Games.Models;
 using Games.Repositories;
 using Games.Services;
+using Moq;
+using Xunit;
 
 namespace Games.Tests.Services
 {
     public class GameServiceTests
     {
-        private readonly Mock<IGameRepository> _mockRepository;
+        private readonly Mock<IGameRepository> _repoMock;
         private readonly GameService _service;
 
         public GameServiceTests()
         {
-            _mockRepository = new Mock<IGameRepository>();
-            _service = new GameService(_mockRepository.Object);
+            _repoMock = new Mock<IGameRepository>();
+            _service = new GameService(_repoMock.Object);
         }
 
-        // FIXME
-        // [Fact]
-        // public async Task GetAllAsync_ShouldReturnAllGames()
-        // {
-        //     // Arrange
-        //     var expectedGames = new List<Game>
-        //     {
-        //         new Game { GameId = 1, Name = "Spider-Man", Developer = "Insomniac", ReleaseDate = new DateTime(2020, 11, 12) },
-        //         new Game { GameId = 2, Name = "Halo Infinite", Developer = "343 Industries", ReleaseDate = new DateTime(2021, 12, 8) },
-        //     };
-
-        //     _mockRepository.Setup(repo => repo.GetAllAsync())
-        //                    .ReturnsAsync(expectedGames);
-
-        //     // Act
-        //     var result = await _service.GetAllAsync();
-
-        //     // Assert
-        //     result.Should().NotBeNull();
-        //     result.Should().HaveCount(2);
-        //     result.Should().BeEquivalentTo(expectedGames);
-
-        //     _mockRepository.Verify(repo => repo.GetAllAsync(), Times.Once);
-        // }
-
-        // FIXME
-        // [Fact]
-        // public async Task GetByIdAsync_WithValidIdShouldReturnGame()
-        // {
-        //     // Arrange
-        //     var expectedGame = new Game
-        //     {
-        //         GameId = 1,
-        //         Name = "Spider-Man",
-        //         DeveloperId = "Insomniac",
-        //         ReleaseDate = new DateTime(2020, 11, 12),
-        //     };
-
-        //     _mockRepository.Setup(repo => repo.GetByIdAsync(1))
-        //                    .ReturnsAsync(expectedGame);
-
-        //     // Act
-        //     var result = await _service.GetByIdAsync(1);
-
-        //     // Assert
-        //     result.Should().NotBeNull();
-        //     result.Should().BeEquivalentTo(expectedGame);
-        //     _mockRepository.Verify(repo => repo.GetByIdAsync(1), Times.Once);
-        // }
-
         [Fact]
-        public async Task GetByIdAsync_WithInvalidIdShouldReturnNull()
+        public async Task GetGames_ShouldReturnAll_WhenNameIsNull()
         {
             // Arrange
-            _mockRepository.Setup(repo => repo.GetByIdAsync(999))
-                           .ReturnsAsync((Game?)null);
+            var games = new List<Game> { new Game { GameId = 1, Name = "Halo" } };
+            _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(games);
 
             // Act
-            var result = await _service.GetByIdAsync(999);
+            var result = await _service.GetGames(null);
 
             // Assert
-            result.Should().BeNull();
-            _mockRepository.Verify(repo => repo.GetByIdAsync(999), Times.Once);
-        }
-
-        // FIXME
-        // [Fact]
-        // public async Task CreateAsync_ShouldAddGame()
-        // {
-        //     // Arrange
-        //     var inputGame = new Game { Name = "Elden Ring", Developer = "FromSoftware", ReleaseDate = new DateTime(2022, 2, 25) };
-
-        //     _mockRepository.Setup(repo => repo.AddAsync(inputGame))
-        //                    .Returns(Task.CompletedTask);
-
-        //     // Act
-        //     await _service.CreateAsync(inputGame);
-
-        //     // Assert
-        //     _mockRepository.Verify(repo => repo.AddAsync(inputGame), Times.Once);
-        //     _mockRepository.Verify(repo => repo.SaveChangesAsync(), Times.Once);
-        // }
-
-        // FIXME
-        // [Fact]
-        // public async Task UpdateAsync_ShouldCallRepositoryUpdateAndSaveChanges()
-        // {
-        //     // Arrange
-        //     var game = new Game
-        //     {
-        //         GameId = 1,
-        //         Name = "Halo",
-        //         Developer = "Bungie",
-        //         ReleaseDate = new DateTime(2001, 11, 15),
-        //     };
-
-        //     _mockRepository.Setup(r => r.UpdateAsync(game))
-        //                    .Returns(Task.CompletedTask);
-        //     _mockRepository.Setup(r => r.SaveChangesAsync())
-        //                    .Returns(Task.CompletedTask);
-
-        //     // Act
-        //     await _service.UpdateAsync(game);
-
-        //     // Assert
-        //     _mockRepository.Verify(r => r.UpdateAsync(game), Times.Once);
-        //     _mockRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
-        // }
-
-        [Fact]
-        public async Task DeleteAsync_ShouldCallRepositoryDeleteAndSaveChanges()
-        {
-            // Arrange
-            var gameId = 1;
-
-            _mockRepository.Setup(r => r.DeleteAsync(gameId))
-                           .Returns(Task.CompletedTask);
-            _mockRepository.Setup(r => r.SaveChangesAsync())
-                           .Returns(Task.CompletedTask);
-
-            // Act
-            await _service.DeleteAsync(gameId);
-
-            // Assert
-            _mockRepository.Verify(r => r.DeleteAsync(gameId), Times.Once);
-            _mockRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            Assert.Single(result);
+            Assert.Equal("Halo", result[0].Name);
+            _repoMock.Verify(r => r.GetAllAsync(), Times.Once);
+            _repoMock.Verify(r => r.GetAllMatchingAsync(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
-        public void ConstructorWithNullRepositoryShouldThrow()
+        public async Task GetGames_ShouldReturnMatching_WhenNameIsNotNull()
         {
-            // Act
-            Action act = () => new GameService(null!);
+            var games = new List<Game> { new Game { GameId = 2, Name = "Zelda" } };
+            _repoMock.Setup(r => r.GetAllMatchingAsync("Zelda")).ReturnsAsync(games);
 
-            // Assert
-            act.Should().Throw<ArgumentNullException>();
+            var result = await _service.GetGames("Zelda");
+
+            Assert.Single(result);
+            Assert.Equal(2, result[0].GameId);
+            _repoMock.Verify(r => r.GetAllMatchingAsync("Zelda"), Times.Once);
+            _repoMock.Verify(r => r.GetAllAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnGame()
+        {
+            var game = new Game { GameId = 1, Name = "Mario" };
+            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(game);
+
+            var result = await _service.GetByIdAsync(1);
+
+            Assert.Equal("Mario", result!.Name);
+            _repoMock.Verify(r => r.GetByIdAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ShouldCallAddAndSave()
+        {
+            var game = new Game { GameId = 3, Name = "Metroid" };
+
+            await _service.CreateAsync(game);
+
+            _repoMock.Verify(r => r.AddAsync(game), Times.Once);
+            _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldCallUpdateAndSave()
+        {
+            var game = new Game { GameId = 4, Name = "Doom" };
+
+            await _service.UpdateAsync(game);
+
+            _repoMock.Verify(r => r.UpdateAsync(game), Times.Once);
+            _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ShouldCallDeleteAndSave()
+        {
+            await _service.DeleteAsync(5);
+
+            _repoMock.Verify(r => r.DeleteAsync(5), Times.Once);
+            _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task LinkGameToPlatformAsync_ShouldCallRepo()
+        {
+            await _service.LinkGameToPlatformAsync(1, 2);
+            _repoMock.Verify(r => r.LinkGameToPlatformAsync(1, 2), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateGamePlatformAsync_ShouldCallRepo()
+        {
+            await _service.UpdateGamePlatformAsync(1, 10, 20);
+            _repoMock.Verify(r => r.UpdateGamePlatformAsync(1, 10, 20), Times.Once);
+        }
+
+        [Fact]
+        public async Task UnlinkGameFromPlatformAsync_ShouldCallRepo()
+        {
+            await _service.UnlinkGameFromPlatformAsync(1, 2);
+            _repoMock.Verify(r => r.UnlinkGameFromPlatformAsync(1, 2), Times.Once);
+        }
+
+        [Fact]
+        public async Task LinkGameToGenreAsync_ShouldCallRepo()
+        {
+            await _service.LinkGameToGenreAsync(1, 99);
+            _repoMock.Verify(r => r.LinkGameToGenreAsync(1, 99), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateGameGenreAsync_ShouldCallRepo()
+        {
+            await _service.UpdateGameGenreAsync(1, 5, 6);
+            _repoMock.Verify(r => r.UpdateGameGenreAsync(1, 5, 6), Times.Once);
+        }
+
+        [Fact]
+        public async Task UnlinkGameFromGenreAsync_ShouldCallRepo()
+        {
+            await _service.UnlinkGameFromGenreAsync(1, 77);
+            _repoMock.Verify(r => r.UnlinkGameFromGenreAsync(1, 77), Times.Once);
+        }
+
+        [Fact]
+        public void Constructor_ShouldThrow_WhenRepoIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => new GameService(null!));
         }
     }
 }

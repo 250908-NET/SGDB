@@ -142,7 +142,6 @@ public class GameRepository : IGameRepository
             await _context.SaveChangesAsync();
         }
     }
-    }
 
     public async Task ClearGameGenresAsync(int gameId)
     {

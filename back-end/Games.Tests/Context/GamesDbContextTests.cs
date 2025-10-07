@@ -32,20 +32,34 @@ public class GamesDbContextTests
         var options = GetInMemoryOptions();
         using var context = new GamesDbContext(options);
 
+        // Create and save developer & publisher first
+        var developer = new Company { Name = "Test Studio" };
+        var publisher = new Company { Name = "Test Publisher" };
+        context.Companies.AddRange(developer, publisher);
+        await context.SaveChangesAsync();
+
         var game = new Game
         {
             Name = "Test Game",
-            DeveloperId = 2,
+            DeveloperId = 1,    
+            PublisherId = publisher.CompanyId,
             ReleaseDate = new DateTime(2024, 1, 1),
         };
 
         context.Games.Add(game);
         await context.SaveChangesAsync();
 
-        var saved = await context.Games.FirstOrDefaultAsync(g => g.Name == "Test Game");
+        var saved = await context.Games
+        .Include(g => g.Developer)
+        .Include(g => g.Publisher)
+        .FirstOrDefaultAsync(g => g.Name == "Test Game");
 
         saved.Should().NotBeNull();
-        saved!.Developer.Should().Be("Test Studio");
+        saved!.Developer.Should().NotBeNull();
+        saved.Developer.Name.Should().Be("Test Studio");
+
+        saved.Publisher.Should().NotBeNull();
+        saved.Publisher.Name.Should().Be("Test Publisher");
     }
 
     [Fact]
