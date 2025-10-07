@@ -12,7 +12,13 @@ public class GameService : IGameService
         _repo = repo ?? throw new ArgumentNullException(nameof(repo));
     }
 
-    public async Task<List<Game>> GetAllAsync() => await _repo.GetAllAsync();
+    public async Task<List<Game>> GetGames(string? name)
+    {
+        if (name is null)
+            return await _repo.GetAllAsync();
+        else
+            return await _repo.GetAllMatchingAsync(name);
+    }
 
     public async Task<Game?> GetByIdAsync(int id) => await _repo.GetByIdAsync(id);
 
