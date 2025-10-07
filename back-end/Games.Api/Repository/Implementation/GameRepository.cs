@@ -103,6 +103,13 @@ public class GameRepository : IGameRepository
         }
     }
 
+    public async Task ClearGamePlatformsAsync(int gameId)
+    {
+        var links = await _context.GamePlatforms.Where(gp => gp.GameId == gameId).ToListAsync();
+        _context.GamePlatforms.RemoveRange(links);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task LinkGameToGenreAsync(int gameId, int genreId)
     {
         var existingLink = await _context.GameGenres.FindAsync(gameId, genreId);
@@ -135,6 +142,16 @@ public class GameRepository : IGameRepository
             await _context.SaveChangesAsync();
         }
     }
+    }
+
+    public async Task ClearGameGenresAsync(int gameId)
+    {
+        var links = await _context.GameGenres.Where(gg => gg.GameId == gameId).ToListAsync();
+        _context.GameGenres.RemoveRange(links);
+        await _context.SaveChangesAsync();
+    }
+
+    
 
 
 }

@@ -43,20 +43,20 @@ public static class MappingExtensions
     }
 
     // COMPANY
-    public static CompanyDto ToDto(this Company company)
-    {
-        return new CompanyDto
-        {
-            CompanyId = company.CompanyId,
-            Name = company.Name,
-            DevelopedGames = company.DevelopedGames?
-                .Select(g => g.Name)
-                .ToList() ?? new List<string>(),
-            PublishedGames = company.PublishedGames?
-                .Select(g => g.Name)
-                .ToList() ?? new List<string>()
-        };
-    }
+    // public static CompanyDto ToDto(this Company company)
+    // {
+    //     return new CompanyDto
+    //     {
+    //         CompanyId = company.CompanyId,
+    //         Name = company.Name,
+    //         DevelopedGames = company.DevelopedGames?
+    //             .Select(g => g.Name)
+    //             .ToList() ?? new List<int>(),
+    //         PublishedGames = company.PublishedGames?
+    //             .Select(g => g.Name)
+    //             .ToList() ?? new List<int>()
+    //     };
+    // }
 
     // GENRE
     public static GenreDto ToDto(this Genre genre)

@@ -13,9 +13,11 @@ public interface IGameService
     public Task LinkGameToPlatformAsync(int gameId, int platformId);
     public Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId);
     public Task UnlinkGameFromPlatformAsync(int gameId, int platformId);
+    Task ClearGamePlatformsAsync(int gameId);
 
     public Task LinkGameToGenreAsync(int gameId, int genreId);
     public Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId);
     public Task UnlinkGameFromGenreAsync(int gameId, int genreId);
+    Task ClearGameGenresAsync(int gameId);
 
 }
