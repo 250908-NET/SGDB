@@ -11,7 +11,7 @@ public class Genre
     public int GenreId { get; set; }
 
     [Required]
-    public string Name { get; set; } = string.Empty;   // ex. "PlayStation 5"
+    public string Name { get; set; } = string.Empty;
 
     // Many to many relationship
     public ICollection<GameGenre> GameGenres { get; set; } = new List<GameGenre>();

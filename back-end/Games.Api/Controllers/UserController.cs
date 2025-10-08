@@ -45,7 +45,7 @@ public class UserController : ControllerBase
     {
         _logger.LogInformation("Getting user by id {id}", id);
         var user = await _service.GetUserByIdAsync(id);
-        // Validate if username 
+        // Validate if username exists
         if (user is null)
             return NotFound($"User with '{id}' not found");
         // return Ok(Users);

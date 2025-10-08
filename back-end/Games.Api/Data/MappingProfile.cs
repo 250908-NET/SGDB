@@ -80,8 +80,18 @@ namespace Games.Data
                 .ForMember(dest => dest.GameGenres, opt => opt.Ignore());
 
             // User mappings
-            CreateMap<CreateUserDto, User>();
-            CreateMap<UpdateUserDto, User>();
+            CreateMap<CreateUserDto, User>()
+                .ForMember(dest => dest.UserGenres, opt => opt.MapFrom(src =>
+                    src.UserGenres.Select(id => new UserGenre { GenreId = id }).ToList()))
+                .ForMember(dest => dest.GameLibrary, opt => opt.MapFrom(src =>
+                    src.GameLibrary.Select(id => new UserGame { GameId = id }).ToList()));
+            
+            CreateMap<UpdateUserDto, User>()
+                .ForMember(dest => dest.UserGenres, opt => opt.MapFrom(src =>
+                    src.UserGenres.Select(id => new UserGenre { GenreId = id }).ToList()))
+                .ForMember(dest => dest.GameLibrary, opt => opt.MapFrom(src =>
+                    src.GameLibrary.Select(id => new UserGame { GameId = id }).ToList()));
+        
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.UserGenres,
                     opt => opt.MapFrom(src =>
