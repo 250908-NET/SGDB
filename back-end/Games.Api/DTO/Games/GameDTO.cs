@@ -7,7 +7,9 @@ public class GameDto
     public DateTime ReleaseDate { get; set; }
     public int PublisherId { get; set; }   // FK to Company
     public int DeveloperId { get; set; }   // FK to Company
-    
+
     public List<string> Platforms { get; set; } = new();
     public List<string> Genres { get; set; } = new();
+    
+    public string? ImageUrl { get; set; }
 }

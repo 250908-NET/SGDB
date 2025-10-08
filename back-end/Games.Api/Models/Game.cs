@@ -21,6 +21,8 @@ public class Game
     [MaxLength(100)]
     public Company Developer { get; set; } = null!;
     public Company Publisher { get; set; } = null!;
+    public string? ImageUrl { get; set; }
+
 
     // Foreign keys
     public int DeveloperId { get; set; }

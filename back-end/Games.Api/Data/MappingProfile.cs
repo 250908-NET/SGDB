@@ -23,7 +23,8 @@ namespace Games.Data
                             : new List<int>()
                     ));
             CreateMap<CreateGameDto, Game>();
-            CreateMap<UpdateGameDto, Game>();
+            CreateMap<UpdateGameDto, Game>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.Condition(src => !string.IsNullOrEmpty(src.ImageUrl)));
 
             // Platform mappings
             CreateMap<Platform, PlatformDto>()
