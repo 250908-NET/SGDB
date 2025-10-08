@@ -10,4 +10,5 @@ public interface IGenreRepository
     Task UpdateAsync(Genre Genre);
     Task DeleteAsync(int id);
     Task SaveChangesAsync();
+    Task ClearGenreGamesAsync(int id);
 }

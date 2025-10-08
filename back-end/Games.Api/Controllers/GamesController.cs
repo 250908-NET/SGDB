@@ -159,6 +159,7 @@ public class GamesController : ControllerBase
 
 
         _mapper.Map(dto, game);
+<<<<<<< HEAD
 
         // Automatically update image if name changed and ImageUrl was not provided
         if (string.IsNullOrWhiteSpace(dto.ImageUrl) || !string.Equals(game.Name, dto.Name, StringComparison.OrdinalIgnoreCase))
@@ -167,6 +168,8 @@ public class GamesController : ControllerBase
             game.ImageUrl = imageUrl ?? game.ImageUrl;
         }
 
+=======
+>>>>>>> 6c04d03414b7f8454144bea3fc86631301301286
         await _service.UpdateAsync(game);
         
 
@@ -185,8 +188,8 @@ public class GamesController : ControllerBase
         {
             await _service.LinkGameToGenreAsync(id, genreId);
         }
-        var updatedGame = await _service.GetByIdAsync(id);
-        return Ok(_mapper.Map<GameDto>(updatedGame));
+    
+        return Ok(_mapper.Map<GameDto>(game));
     }
 
     // Delete a game by Id

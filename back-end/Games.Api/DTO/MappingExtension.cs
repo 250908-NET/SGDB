@@ -59,15 +59,15 @@ public static class MappingExtensions
     // }
 
     // GENRE
-    public static GenreDto ToDto(this Genre genre)
-    {
-        return new GenreDto
-        {
-            GenreId = genre.GenreId,
-            Name = genre.Name,
-            Games = genre.GameGenres?
-                .Select(gp => gp.Game.Name)
-                .ToList() ?? new List<string>()
-        };
-    }
+    // public static GenreDto ToDto(this Genre genre)
+    // {
+    //     return new GenreDto
+    //     {
+    //         GenreId = genre.GenreId,
+    //         Name = genre.Name,
+    //         Games = genre.GameGenres?
+    //             .Select(gp => gp.Game.Name)
+    //             .ToList() ?? new List<string>()
+    //     };
+    // }
 }
