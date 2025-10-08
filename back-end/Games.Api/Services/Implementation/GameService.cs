@@ -1,82 +1,93 @@
 using Games.Models;
 using Games.Repositories;
 
-namespace Games.Services;
-
-public class GameService : IGameService
+namespace Games.Services
 {
-    private readonly IGameRepository _repo;
-
-    public GameService(IGameRepository repo)
+    public class GameService : IGameService
     {
-        _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-    }
+        private readonly IGameRepository _repo;
+        private readonly IGameImageService _imageService;
 
-    public async Task<List<Game>> GetGames(string? name)
-    {
-        if (name is null)
-            return await _repo.GetAllAsync();
-        else
-            return await _repo.GetAllMatchingAsync(name);
-    }
+        public GameService(IGameRepository repo, IGameImageService imageService)
+        {
+            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
+        }
 
-    public async Task<Game?> GetByIdAsync(int id) => await _repo.GetByIdAsync(id);
+        public async Task<List<Game>> GetGames(string? name)
+        {
+            if (name is null)
+                return await _repo.GetAllAsync();
+            else
+                return await _repo.GetAllMatchingAsync(name);
+        }
 
-    public async Task CreateAsync(Game game)
-    {
-        await _repo.AddAsync(game);
-        await _repo.SaveChangesAsync();
-    }
+        public async Task<Game?> GetByIdAsync(int id) => await _repo.GetByIdAsync(id);
 
-    public async Task UpdateAsync(Game game)
-    {
-        await _repo.UpdateAsync(game);
-        await _repo.SaveChangesAsync();
-    }
+        public async Task CreateAsync(Game game)
+        {
+            var imageUrl = await _imageService.GetGameImageUrlAsync(game.Name);
+            game.ImageUrl = imageUrl;
 
-    public async Task DeleteAsync(int id)
-    {
-        await _repo.DeleteAsync(id);
-        await _repo.SaveChangesAsync();
-    }
+            await _repo.AddAsync(game);
+            await _repo.SaveChangesAsync();
+        }
 
-    public async Task LinkGameToPlatformAsync(int gameId, int platformId)
-    {
-        await _repo.LinkGameToPlatformAsync(gameId, platformId);
-    }
+        public async Task UpdateAsync(Game game)
+        {
+            // automatically update the image when the game name changes
+            var imageUrl = await _imageService.GetGameImageUrlAsync(game.Name);
+            if (!string.IsNullOrWhiteSpace(imageUrl))
+                game.ImageUrl = imageUrl;
 
-    public async Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId)
-    {
-        await _repo.UpdateGamePlatformAsync(gameId, oldPlatformId, newPlatformId);
-    }
+            await _repo.UpdateAsync(game);
+            await _repo.SaveChangesAsync();
+        }
 
-    public async Task UnlinkGameFromPlatformAsync(int gameId, int platformId)
-    {
-        await _repo.UnlinkGameFromPlatformAsync(gameId, platformId);
-    }
+        public async Task DeleteAsync(int id)
+        {
+            await _repo.DeleteAsync(id);
+            await _repo.SaveChangesAsync();
+        }
 
-    public async Task ClearGamePlatformsAsync(int gameId)
-    {
-        await _repo.ClearGamePlatformsAsync(gameId);
-    }
+        public async Task LinkGameToPlatformAsync(int gameId, int platformId)
+        {
+            await _repo.LinkGameToPlatformAsync(gameId, platformId);
+        }
 
-    public async Task LinkGameToGenreAsync(int gameId, int genreId)
-    {
-        await _repo.LinkGameToGenreAsync(gameId, genreId);
-    }
+        public async Task UpdateGamePlatformAsync(int gameId, int oldPlatformId, int newPlatformId)
+        {
+            await _repo.UpdateGamePlatformAsync(gameId, oldPlatformId, newPlatformId);
+        }
 
-    public async Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId)
-    {
-        await _repo.UpdateGameGenreAsync(gameId, oldGenreId, newGenreId);
-    }
+        public async Task UnlinkGameFromPlatformAsync(int gameId, int platformId)
+        {
+            await _repo.UnlinkGameFromPlatformAsync(gameId, platformId);
+        }
 
-    public async Task UnlinkGameFromGenreAsync(int gameId, int genreId)
-    {
-        await _repo.UnlinkGameFromGenreAsync(gameId, genreId);
-    }
-    public async Task ClearGameGenresAsync(int gameId)
-    {
-        await _repo.ClearGameGenresAsync(gameId);
-    }
+        public async Task ClearGamePlatformsAsync(int gameId)
+        {
+            await _repo.ClearGamePlatformsAsync(gameId);
+        }
 
+        public async Task LinkGameToGenreAsync(int gameId, int genreId)
+        {
+            await _repo.LinkGameToGenreAsync(gameId, genreId);
+        }
+
+        public async Task UpdateGameGenreAsync(int gameId, int oldGenreId, int newGenreId)
+        {
+            await _repo.UpdateGameGenreAsync(gameId, oldGenreId, newGenreId);
+        }
+
+        public async Task UnlinkGameFromGenreAsync(int gameId, int genreId)
+        {
+            await _repo.UnlinkGameFromGenreAsync(gameId, genreId);
+        }
+
+        public async Task ClearGameGenresAsync(int gameId)
+        {
+            await _repo.ClearGameGenresAsync(gameId);
+        }
+    }
 }

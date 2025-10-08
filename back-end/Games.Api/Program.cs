@@ -58,6 +58,13 @@ builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITokenServices, TokenService>();
 
+//External API Request for Game Images
+builder.Services.AddHttpClient<IGameImageService, GameImageService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.rawg.io/api/");
+});
+
+
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
