@@ -1,5 +1,8 @@
+using System.Reflection.Metadata;
 using Games.Data;
 using Games.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace Games.Tests;
 
@@ -60,8 +63,16 @@ public static class Utilities
         };
 
         // Seed users - Needs to be changed
-        var user1 = new User();
-        var user2 = new User();
+        var user1 = new User
+        {
+            username = "testuser",
+            role = "User"
+        };
+        var user2 = new User()
+        {
+            username = "testadmin",
+            role = "Admin"
+        };
 
         //Seed Ratings
         var rate1 = new Rating

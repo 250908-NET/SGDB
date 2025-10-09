@@ -21,4 +21,6 @@ public interface IRatingRepository
 
     // DELETE /api/ratings/{userId}/{gameId}
     public Task DeleteAsync(int userId, int gameId);
+
+    Task<Rating?> GetByCompositeKeyAsync(int userId, int gameId);
 }

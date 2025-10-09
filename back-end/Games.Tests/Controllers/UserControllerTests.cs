@@ -17,8 +17,6 @@ namespace Games.Tests.Controllers
         private readonly Mock<ILogger<UserController>> _mockLogger;
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<IUserService> _mockUserService;
-        private readonly Mock<IGenreService> _mockGenreService;
-        private readonly Mock<IGameService> _mockGameService;
         private readonly UserController _controller;
 
         public UserControllerTests()
@@ -26,15 +24,11 @@ namespace Games.Tests.Controllers
             _mockLogger = new Mock<ILogger<UserController>>();
             _mockMapper = new Mock<IMapper>();
             _mockUserService = new Mock<IUserService>();
-            _mockGenreService = new Mock<IGenreService>();
-            _mockGameService = new Mock<IGameService>();
 
             _controller = new UserController(
                 _mockLogger.Object,
                 _mockMapper.Object,
-                _mockUserService.Object,
-                _mockGenreService.Object,
-                _mockGameService.Object
+                _mockUserService.Object
             );
         }
 
@@ -69,14 +63,17 @@ namespace Games.Tests.Controllers
         [Fact]
         public async Task GetUser_ReturnsOk_WhenUserExists()
         {
+            // Arrange
             var user = new User { UserId = 1, username = "Player1", role = "Admin" };
             var userDto = new UserDto { UserId = 1, username = "Player1", role = "Admin" };
 
             _mockUserService.Setup(s => s.GetUserByIdAsync(1)).ReturnsAsync(user);
             _mockMapper.Setup(m => m.Map<UserDto>(user)).Returns(userDto);
 
+            // Act
             var result = await _controller.GetUser(1);
 
+            // Assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
             var returnValue = Assert.IsType<UserDto>(okResult.Value);
             Assert.Equal("Player1", returnValue.username);
@@ -86,16 +83,49 @@ namespace Games.Tests.Controllers
         [Fact]
         public async Task GetUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
+            // Arrange
             _mockUserService.Setup(s => s.GetUserByIdAsync(1)).ReturnsAsync((User?)null);
 
+            // Act
             var result = await _controller.GetUser(1);
 
+            // Assert
             Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetByUsername_ReturnsOk_WhenUserExists()
+        {
+            // Arrange
+            var user = new User { UserId = 2, username = "GamerGuy", role = "Player" };
+            var userDto = new UserDto { UserId = 2, username = "GamerGuy", role = "Player" };
+
+            _mockUserService.Setup(s => s.GetUserByUsernameAsync("GamerGuy")).ReturnsAsync(user);
+            _mockMapper.Setup(m => m.Map<UserDto>(user)).Returns(userDto);
+
+            // Act
+            var result = await _controller.GetByUsername("GamerGuy");
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsType<UserDto>(okResult.Value);
+            Assert.Equal("GamerGuy", returnValue.username);
+        }
+
+        [Fact]
+        public async Task GetByUsername_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            _mockUserService.Setup(s => s.GetUserByUsernameAsync("NoUser")).ReturnsAsync((User?)null);
+
+            var result = await _controller.GetByUsername("NoUser");
+
+            Assert.IsType<NotFoundObjectResult>(result);
         }
 
         [Fact]
         public async Task CreateAsync_ReturnsCreated_WhenUserIsAdded()
         {
+            // Arrange
             var createDto = new CreateUserDto { username = "NewUser", role = "Player" };
             var user = new User { UserId = 1, username = "NewUser", role = "Player" };
             var userDto = new UserDto { UserId = 1, username = "NewUser", role = "Player" };
@@ -103,8 +133,10 @@ namespace Games.Tests.Controllers
             _mockMapper.Setup(m => m.Map<User>(createDto)).Returns(user);
             _mockMapper.Setup(m => m.Map<UserDto>(user)).Returns(userDto);
 
+            // Act
             var result = await _controller.CreateAsync(createDto);
 
+            // Assert
             var createdResult = Assert.IsType<CreatedResult>(result);
             var returnValue = Assert.IsType<UserDto>(createdResult.Value);
             Assert.Equal("NewUser", returnValue.username);
@@ -112,23 +144,62 @@ namespace Games.Tests.Controllers
         }
 
         [Fact]
+        public async Task UpdateAsync_ReturnsOk_WhenUserExists()
+        {
+            // Arrange
+            var user = new User { UserId = 1, username = "OldName", role = "Player" };
+            var dto = new UpdateUserDto { username = "UpdatedName" };
+            var updatedDto = new UserDto { UserId = 1, username = "UpdatedName", role = "Player" };
+
+            _mockUserService.Setup(s => s.GetUserByIdAsync(1)).ReturnsAsync(user);
+            _mockMapper.Setup(m => m.Map(dto, user));
+            _mockMapper.Setup(m => m.Map<UserDto>(user)).Returns(updatedDto);
+
+            // Act
+            var result = await _controller.UpdateAsync(1, dto);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsType<UserDto>(okResult.Value);
+            Assert.Equal("UpdatedName", returnValue.username);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            _mockUserService.Setup(s => s.GetUserByIdAsync(1)).ReturnsAsync((User?)null);
+            var dto = new UpdateUserDto { username = "NonExistent" };
+
+            var result = await _controller.UpdateAsync(1, dto);
+
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
         public async Task DeleteAsync_ReturnsNoContent_WhenUserExists()
         {
+            // Arrange
             var user = new User { UserId = 1, username = "ToDelete" };
             _mockUserService.Setup(s => s.GetUserByIdAsync(1)).ReturnsAsync(user);
 
+            // Act
             var result = await _controller.DeleteAsync(1);
 
+            // Assert
             Assert.IsType<NoContentResult>(result);
+            _mockUserService.Verify(s => s.RemoveUserAsync(1), Times.Once);
         }
 
         [Fact]
         public async Task DeleteAsync_ReturnsNotFound_WhenUserDoesNotExist()
         {
+            // Arrange
             _mockUserService.Setup(s => s.GetUserByIdAsync(1)).ReturnsAsync((User?)null);
 
+            // Act
             var result = await _controller.DeleteAsync(1);
 
+            // Assert
             Assert.IsType<NotFoundObjectResult>(result);
         }
     }
