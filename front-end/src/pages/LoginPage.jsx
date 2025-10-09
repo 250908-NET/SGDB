@@ -10,17 +10,23 @@ export default function LoginPage({ onLogin }) {
 
   async function handleLogin(e) {
     e.preventDefault();
-    const trimmed = username.trim();
-    if (!trimmed) return;
+    let trimmed = username.trim();
+    if (trimmed == "") {
+      setError("Please enter a username before logging in.");
+      setMessage("");      // clear any previous messages
+      return;
+    }
 
     setLoading(true);
     setError("");
 
     try {
       // Call backend: GET /api/user/username/{username}
-      const user = await UsersAPI.getByUsername(trimmed);
+      let user = await UsersAPI.getByUsername(trimmed);
       console.log("User found:", user);
 
+      
+      
       if (onLogin) onLogin(user); // Pass user data up to parent (App)
     } 
     catch (err) {
@@ -65,7 +71,7 @@ export default function LoginPage({ onLogin }) {
     }
 
     // Ask if admin
-    const isAdmin = window.confirm("Are you an admin?");
+    let isAdmin = window.confirm("Are you an admin?");
     const selectedRole = isAdmin ? "admin" : "user";
 
 
@@ -88,7 +94,8 @@ export default function LoginPage({ onLogin }) {
 
       setMessage(`Account created for "${newUser.username}"!`);
       if (onLogin) onLogin(newUser); // optional: auto-login after register
-    } 
+    }
+    
     catch (err) {
       console.error("Register error:", err);
       setError(`Could not create user "${trimmed}".`);
