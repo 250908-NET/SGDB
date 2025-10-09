@@ -63,7 +63,7 @@ public class RatingRepository : IRatingRepository
     {
         var rating = await _context.Ratings.FindAsync(userId, gameId);
 
-        if(rating == null)
+        if (rating == null)
         {
 
             throw new KeyNotFoundException("Rating not found.");
@@ -72,4 +72,11 @@ public class RatingRepository : IRatingRepository
         _context.Ratings.Remove(rating);
         await _context.SaveChangesAsync();
     }
+    
+    public async Task<Rating?> GetByCompositeKeyAsync(int userId, int gameId)
+    {
+        return await _context.Ratings
+            .FirstOrDefaultAsync(r => r.UserId == userId && r.GameId == gameId);
+    }
+
 }
