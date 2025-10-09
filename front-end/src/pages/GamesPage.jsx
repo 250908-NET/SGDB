@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { GamesAPI } from "../api/games";
 
 /* ----------------------------------------------------------------------------
    STUB that mirrors our Swagger for GET /api/Games
@@ -31,7 +32,7 @@ const STUB_CATALOG = [
     publisherId: 5,
     developerId: 5,
     platforms: ["pc", "switch", "ps4", "xbox"],
-    genres: ["2", "3"], 
+    genres: ["2", "3"],
     imageUrl: "https://placehold.co/256x256?text=Celeste",
   },
   {
@@ -41,7 +42,7 @@ const STUB_CATALOG = [
     publisherId: 7,
     developerId: 7,
     platforms: ["pc", "switch", "ps5", "xbox"],
-    genres: ["1", "4"], 
+    genres: ["1", "4"],
     imageUrl: "https://placehold.co/256x256?text=Hades",
   },
   {
@@ -51,7 +52,7 @@ const STUB_CATALOG = [
     publisherId: 9,
     developerId: 9,
     platforms: ["pc", "switch", "ps4", "xbox", "mobile"],
-    genres: ["5", "2"], 
+    genres: ["5", "2"],
     imageUrl: "https://placehold.co/256x256?text=Stardew+Valley",
   },
 ];
@@ -62,11 +63,11 @@ const STUB_CATALOG = [
    for now we’ll keep it literally what the API returns. */
 
 /* fake network delay so Loading… shows up */
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function fetchGamesStub() {
-  await sleep(250);
-  return STUB_CATALOG;
-}
+// const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// async function fetchGamesStub() {
+//   await sleep(250);
+//   return STUB_CATALOG;
+// }
 
 /* little mini component for platforms/genres */
 const Chip = ({ text }) => (
@@ -145,7 +146,7 @@ export default function GamesPage() {
       try {
         setLoading(true);
         setError("");
-        const data = await fetchGamesStub();
+        const data = await GamesAPI.getAll();
         if (cancel) return;
         setAllGames(data);
         setSelected(data[0] ?? null); // preselect something so the right side isn’t empty
