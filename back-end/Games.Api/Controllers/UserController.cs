@@ -17,17 +17,13 @@ public class UserController : ControllerBase
     private readonly IMapper _mapper;
     private readonly ILogger<UserController> _logger;
     private readonly IUserService _service;
-    private readonly IGenreService _genreService;
-    private readonly IGameService _gameService;
 
-    public UserController(ILogger<UserController> logger, IMapper mapper, IUserService service, IGenreService genreService, IGameService gameService)
+    public UserController(ILogger<UserController> logger, IMapper mapper, IUserService service)
     {
         //_context = context;
         _mapper = mapper;
         _service = service;
         _logger = logger;
-        _genreService = genreService;
-        _gameService = gameService;
     }
 
     // Get all users
@@ -45,10 +41,10 @@ public class UserController : ControllerBase
     {
         _logger.LogInformation("Getting user by id {id}", id);
         var user = await _service.GetUserByIdAsync(id);
-        // Validate if username 
+        // Validate if username exists
         if (user is null)
             return NotFound($"User with '{id}' not found");
-        // return Ok(Users);
+            
         return Ok(_mapper.Map<UserDto>(user));
     }
 
@@ -105,119 +101,32 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    // Link user to genre
+
+    // LINKING LOGIC
     [HttpPost("{userId}/genres/{genreId}")]
     public async Task<IActionResult> LinkUserToGenre(int userId, int genreId)
     {
-        _logger.LogInformation("Linking user {userId} to genre {genreId}", userId, genreId);
-
-        // Check to see if user exists
-        var user = await _service.GetUserByIdAsync(userId);
-        if (user is null)
-        {
-            return NotFound($"User with ID {userId} not found.");
-        }
-
-        // Check to see if genre exists
-        var genre = await _genreService.GetByIdAsync(genreId);
-        if (genre is null)
-        {
-            return NotFound($"Genre with ID {genreId} not found.");
-        }
-
-        // Check if already linked
-        if (user.UserGenres.Any(gp => gp.GenreId == genreId))
-        {
-            return BadRequest("This user is already linked to that genre.");
-        }
         await _service.LinkUserToGenreAsync(userId, genreId);
         return Ok(new { Message = "Linked successfully", UserId = userId, GenreId = genreId });
     }
 
     [HttpDelete("{userId}/genres/{genreId}")]
-    public async Task<IActionResult> DeleteUserGenre(int userId, int genreId)
+    public async Task<IActionResult> UnlinkUserFromGenre(int userId, int genreId)
     {
-        _logger.LogInformation("Unlinking user {userId} from genre {genreId}", userId, genreId);
-        // Check to see if user exists
-        var user = await _service.GetUserByIdAsync(userId);
-        if (user is null)
-        {
-            return NotFound($"User with ID {userId} not found.");
-        }
-
-        // Check to see if genre exists
-        var genre = await _genreService.GetByIdAsync(genreId);
-        if (genre is null)
-        {
-            return NotFound($"Genre with ID {genreId} not found.");
-        }
-
-        // Check if link actually exists
-        if (!user.UserGenres.Any(gp => gp.GenreId == genreId))
-        {
-            return BadRequest("This user is not linked to that genre.");
-        }
-
         await _service.UnlinkUserFromGenreAsync(userId, genreId);
         return NoContent();
     }
 
-    // Link user to game
     [HttpPost("{userId}/games/{gameId}")]
     public async Task<IActionResult> LinkUserToGame(int userId, int gameId)
     {
-        _logger.LogInformation("Linking user {userId} to game {gameId}", userId, gameId);
-
-        // Check to see if user exists
-        var user = await _service.GetUserByIdAsync(userId);
-        if (user is null)
-        {
-            return NotFound($"User with ID {userId} not found.");
-        }
-
-        // Check to see if game exists
-        var game = await _gameService.GetByIdAsync(gameId);
-        if (game is null)
-        {
-            return NotFound($"Game with ID {gameId} not found.");
-        }
-
-        // Check if already linked
-        if (user.GameLibrary.Any(ug => ug.GameId == gameId))
-        {
-            return BadRequest("This user is already linked to that game.");
-        }
-
         await _service.LinkUserToGameAsync(userId, gameId);
         return Ok(new { Message = "Linked successfully", UserId = userId, GameId = gameId });
     }
 
-    // Unlink user from game
     [HttpDelete("{userId}/games/{gameId}")]
-    public async Task<IActionResult> DeleteUserGame(int userId, int gameId)
+    public async Task<IActionResult> UnlinkUserFromGame(int userId, int gameId)
     {
-        _logger.LogInformation("Unlinking user {userId} from game {gameId}", userId, gameId);
-
-        // Check to see if user exists
-        var user = await _service.GetUserByIdAsync(userId);
-        if (user is null)
-        {
-            return NotFound($"User with ID {userId} not found.");
-        }
-
-        // Check to see if game exists
-        var game = await _gameService.GetByIdAsync(gameId);
-        if (game is null)
-        {
-            return NotFound($"Game with ID {gameId} not found.");
-        }
-
-        // Check if link actually exists
-        if (!user.GameLibrary.Any(ug => ug.GameId == gameId))
-        {
-            return BadRequest("This user is not linked to that game.");
-        }
-
         await _service.UnlinkUserFromGameAsync(userId, gameId);
         return NoContent();
     }

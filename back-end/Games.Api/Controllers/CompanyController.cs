@@ -147,6 +147,16 @@ public class CompanyController : ControllerBase
             _logger.LogWarning("Company with ID {id} not found.", id);
             return NotFound("Company not found");
         }
+
+        // Not efficient but check every game to see if it has a foreign reference to the to be deleted company
+        bool hasDevelopedGames = company.DevelopedGames.Any();
+        bool hasPublishedGames = company.PublishedGames.Any();
+
+        if (hasDevelopedGames || hasPublishedGames)
+        {
+            _logger.LogWarning("Cannot delete company {id}", id);
+            return BadRequest("Cannot delete company — it’s still referenced by existing games.");
+        }
         await _service.DeleteAsync(id);
         return NoContent();
     }
