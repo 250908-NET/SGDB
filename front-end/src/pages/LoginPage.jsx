@@ -1,6 +1,7 @@
 import { useState } from "react";
 import snake from "../assets/snake.jpg";
-import { UsersAPI } from "../api/users"; // Import your API functions
+import { UsersAPI } from "../api/users";
+import { AuthAPI } from "../api/auth";
 
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -8,10 +9,15 @@ export default function LoginPage({ onLogin }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+
+  // LOGIN HANDLER -------------
   async function handleLogin(e) {
     e.preventDefault();
     let trimmed = username.trim();
+    console.log("Attempting login with username:", trimmed);
+
     if (trimmed == "") {
+      console.warn("Username empty, aborting login");
       setError("Please enter a username before logging in.");
       setMessage("");      // clear any previous messages
       return;
@@ -21,12 +27,17 @@ export default function LoginPage({ onLogin }) {
     setError("");
 
     try {
+      console.log("Sending POST /authentication/LoginAccount with body:", { username: trimmed });
       // Call backend: GET /api/user/username/{username}
-      let user = await UsersAPI.getByUsername(trimmed);
+      // let user1 = await UsersAPI.getByUsername(trimmed);
+      // console.log("User found:", user1);
+      
+      let user = await AuthAPI.loginAccount({ username: trimmed });
       console.log("User found:", user);
 
+      setMessage("Logged in successfully!");
       
-      
+
       if (onLogin) onLogin(user); // Pass user data up to parent (App)
     } 
     catch (err) {
@@ -38,21 +49,21 @@ export default function LoginPage({ onLogin }) {
     }
   }
 
+  // REGISTER HANDLER -------------
   async function handleRegister() {
-    
-
     let trimmed = username.trim();
     if (!trimmed) {
+      console.log("Blank username");
       setError("Please enter a username before registering.");
       return;
     }
 
     // Confirm username
-    const confirmUsername = window.confirm(
-      `You entered "${trimmed}". Is this correct?`
-    );
+    const confirmUsername = window.confirm(`You entered "${trimmed}". Is this correct?`);
+
     if (!confirmUsername) {
-      setMessage("Registration canceled.");
+      console.log("Registration cancelled.");
+      setMessage("Registration cancelled.");
       return;
     }
 
@@ -60,6 +71,7 @@ export default function LoginPage({ onLogin }) {
     try {
         const existingUser = await UsersAPI.getByUsername(trimmed);
         if (existingUser) {
+          console.warn("Duplicate username.");
           setError(`Username "${trimmed}" already exists. Please choose another.`);
           setLoading(false);
           return;
@@ -72,8 +84,9 @@ export default function LoginPage({ onLogin }) {
 
     // Ask if admin
     let isAdmin = window.confirm("Are you an admin?");
-    const selectedRole = isAdmin ? "admin" : "user";
+    let selectedRole = isAdmin ? "admin" : "user";
 
+    console.log(`Selected role: ${selectedRole}`);
 
     setLoading(true);
     setError("");
@@ -84,16 +97,16 @@ export default function LoginPage({ onLogin }) {
 
       let newUserData = {
         username: trimmed,
-        role: selectedRole,          // default role
-        userGenres: [],        // empty for now
-        gameLibrary: [],       // empty for now
+        role: selectedRole,         
+        userGenres: [],        
+        gameLibrary: [],      
       }
 
-      let newUser = await UsersAPI.create(newUserData);
-      console.log("User registered:", newUser);
+      let result = await AuthAPI.createAccount(newUserData);
+      console.log("User registered:", trimmed);
 
-      setMessage(`Account created for "${newUser.username}"!`);
-      if (onLogin) onLogin(newUser); // optional: auto-login after register
+      setMessage(`Account created for "${result.username}"!`);
+      if (onLogin) onLogin(result); 
     }
     
     catch (err) {
@@ -108,7 +121,7 @@ export default function LoginPage({ onLogin }) {
   return (
     <div className="center-screen">
       <form onSubmit={handleLogin} className="form-auth">
-        <h1 style={{ margin: 0 }}>Gaming</h1>
+        <h1 style={{ margin: 0 }}>SGDB</h1>
 
         <img className="logo" src={snake} alt="App logo" />
 
