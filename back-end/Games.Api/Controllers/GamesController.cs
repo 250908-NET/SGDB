@@ -22,18 +22,19 @@ public class GamesController : ControllerBase
     private readonly IGameImageService _imageService;
     private readonly IMapper _mapper;
 
-    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IGenreService genreService, ICompanyService companyService, IGameImageService  imageService, IMapper mapper)
+    public GamesController(ILogger<GamesController> logger, IGameService gameService, IPlatformService platformService, IGenreService genreService, ICompanyService companyService, IGameImageService imageService, IMapper mapper)
     {
         _logger = logger;
         _service = gameService;
         _platformService = platformService;
         _genreService = genreService;
         _companyService = companyService;
-         _imageService = imageService;
+        _imageService = imageService;
         _mapper = mapper;
     }
 
     // Get games. If no query string, get all games. If query string, then filter games according to query parameters.
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet(Name = "GetAllGames")]
     public async Task<IActionResult> GetGames([FromQuery] string? name)
     {
@@ -43,6 +44,7 @@ public class GamesController : ControllerBase
     }
 
     // Get a game by gameId
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("{id}", Name = "GetGameById")]
     public async Task<IActionResult> GetByIdAsync(int id)
     {
@@ -54,6 +56,7 @@ public class GamesController : ControllerBase
     }
 
     // Add a game to DB
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost(Name = "CreateGame")]
     public async Task<IActionResult> CreateAsync([FromBody] CreateGameDto dto)
     {
@@ -112,6 +115,7 @@ public class GamesController : ControllerBase
     }
 
     // Update a game by Id
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{id}", Name = "UpdateGame")]
     public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateGameDto dto)
     {
@@ -190,6 +194,7 @@ public class GamesController : ControllerBase
     }
 
     // Delete a game by Id
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{id}", Name = "DeleteGame")]
     public async Task<IActionResult> DeleteAsync(int id)
     {
@@ -210,6 +215,7 @@ public class GamesController : ControllerBase
 
     // MAYBE CAN DELETE TBD
     // Link game to platform
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost("{gameId}/platforms/{platformId}")]
     public async Task<IActionResult> LinkGameToPlatform(int gameId, int platformId)
     {
@@ -239,6 +245,7 @@ public class GamesController : ControllerBase
     }
 
     // Update link
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{gameId}/platforms/{oldPlatformId}/{newPlatformId}")]
     public async Task<IActionResult> UpdateGamePlatform(int gameId, int oldPlatformId, int newPlatformId)
     {
@@ -282,6 +289,7 @@ public class GamesController : ControllerBase
     }
 
     // Unlink
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{gameId}/platforms/{platformId}")]
     public async Task<IActionResult> DeleteGamePlatform(int gameId, int platformId)
     {
@@ -312,6 +320,7 @@ public class GamesController : ControllerBase
 
 
     // Link game to genre
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost("{gameId}/genres/{genreId}")]
     public async Task<IActionResult> LinkGameToGenre(int gameId, int genreId)
     {
@@ -341,6 +350,7 @@ public class GamesController : ControllerBase
     }
 
     // Update link
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{gameId}/genres/{oldGenreId}/{newGenreId}")]
     public async Task<IActionResult> UpdateGameGenre(int gameId, int oldGenreId, int newGenreId)
     {
@@ -384,6 +394,7 @@ public class GamesController : ControllerBase
     }
 
     // Unlink
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{gameId}/genres/{genreId}")]
     public async Task<IActionResult> DeleteGameGenre(int gameId, int genreId)
     {
