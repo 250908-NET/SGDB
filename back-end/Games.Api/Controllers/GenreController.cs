@@ -27,6 +27,7 @@ public class GenresController : ControllerBase
     }
 
     // GET: receive all genres
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet(Name = "GetAllGenres")]
     public async Task<IActionResult> GetAllAsync()
     {
@@ -36,6 +37,7 @@ public class GenresController : ControllerBase
     }
 
     // GET: receive genre by id
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("{id}", Name = "GetGenreById")]
     public async Task<ActionResult<GenreDto>> GetGenre(int id)
     {
@@ -49,6 +51,7 @@ public class GenresController : ControllerBase
     }
 
     // POST: create new genre
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost(Name = "CreateGenre")]
     public async Task<ActionResult<GenreDto>> CreateGenre(CreateGenreDto dto)
     {
@@ -70,6 +73,7 @@ public class GenresController : ControllerBase
     }
 
     // PUT: update genre
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{id}", Name = "UpdateGenre")]
     public async Task<IActionResult> UpdateGenre(int id, UpdateGenreDto dto)
     {
@@ -98,6 +102,7 @@ public class GenresController : ControllerBase
     }
 
     // DELETE: delete genre
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{id}", Name = "DeleteGenre")]
     public async Task<IActionResult> DeleteGenre(int id)
     {

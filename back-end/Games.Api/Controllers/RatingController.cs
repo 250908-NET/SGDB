@@ -27,6 +27,7 @@ public class RatingController : ControllerBase
     }
 
     // GET /api/rating
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet(Name = "GetAllRatings")]
     public async Task<IActionResult> GetAllAsync()
     {
@@ -36,6 +37,7 @@ public class RatingController : ControllerBase
     }
 
     // GET /api/rating/game/{gameId}
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("game/{gameId}", Name = "GetRatingsByGameId")]
     public async Task<IActionResult> GetByGameIdAsync(int gameId)
     {
@@ -45,6 +47,7 @@ public class RatingController : ControllerBase
     }
 
     // GET /api/rating/user/{userId}
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("user/{userId}", Name = "GetRatingsByUserId")]
     public async Task<IActionResult> GetByUserIdAsync(int userId)
     {
@@ -54,6 +57,7 @@ public class RatingController : ControllerBase
     }
 
     // POST /api/rating
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost(Name = "CreateRating")]
     public async Task<IActionResult> CreateAsync([FromBody] RatingDto dto)
     {
@@ -92,6 +96,7 @@ public class RatingController : ControllerBase
 );
     }
 
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{userId}/{gameId}", Name = "UpdateRating")]
     public async Task<IActionResult> UpdateAsync(int userId, int gameId, [FromBody] RatingDto dto)
     {
@@ -116,6 +121,7 @@ public class RatingController : ControllerBase
 
 
     // DELETE /api/rating/{userId}/{gameId}
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{userId}/{gameId}", Name = "DeleteRating")]
     public async Task<IActionResult> DeleteAsync(int userId, int gameId)
     {
@@ -130,6 +136,7 @@ public class RatingController : ControllerBase
         return NoContent();
     }
     
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("{userId}/{gameId}", Name = "GetRatingByCompositeKey")]
     public async Task<IActionResult> GetByCompositeKeyAsync(int userId, int gameId)
     {

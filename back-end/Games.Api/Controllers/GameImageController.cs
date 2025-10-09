@@ -15,6 +15,7 @@ namespace Games.Controllers
             _imageService = imageService;
         }
 
+        [Microsoft.AspNetCore.Authorization.Authorize]
         [HttpGet("{gameName}")]
         public async Task<IActionResult> Get(string gameName)
         {
