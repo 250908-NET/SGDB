@@ -245,7 +245,7 @@ export default function GamesPage() {
                   <div>
                     <h3 style={{ margin: "0 0 6px" }}>{selected.name}</h3>
 
-                    {/* only show fields your backend actually returns */}
+                    {/* only show fields backend actually returns */}
                     <dl style={{ margin: 0, fontSize: 14, color: "#333" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
                         <dt style={{ color: "#666" }}>Release Date</dt>
