@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { GamesAPI } from "../api/games";
 import { GenresAPI } from "../api/genres";
 
+
 /* tiny pill for platforms/genres */
 
 const Chip = ({ text }) => (
@@ -85,8 +86,6 @@ export default function GamesPage() {
       try {
         setLoading(true);
         setError("");
-
-
         const [gamesRaw, genresRaw] = await Promise.all([     //THIS IS WHERE WE CALL OUR APIS
           GamesAPI.getAll(),   // [{ gameId, name, releaseDate, publisherId, developerId, platforms, genres, imageUrl }]
           GenresAPI.getAll(),  // [{ genreId, name, games: [] }]
