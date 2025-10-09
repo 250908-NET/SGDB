@@ -31,4 +31,10 @@ public class RatingService : IRatingService
 
     public async Task DeleteAsync(int userId, int gameId) =>
         await _repo.DeleteAsync(userId, gameId);
+
+    public async Task<Rating?> GetByCompositeKeyAsync(int userId, int gameId)
+    {
+        return await _repo.GetByCompositeKeyAsync(userId, gameId);
+    }
+
 }

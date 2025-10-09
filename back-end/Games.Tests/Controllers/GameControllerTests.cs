@@ -19,6 +19,7 @@ namespace Games.Tests.Controllers
         private readonly Mock<IPlatformService> _platformServiceMock;
         private readonly Mock<IGenreService> _genreServiceMock;
         private readonly Mock<ICompanyService> _companyServiceMock;
+        private readonly Mock<IGameImageService> _imageServiceMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly GamesController _controller;
 
@@ -29,6 +30,7 @@ namespace Games.Tests.Controllers
             _platformServiceMock = new Mock<IPlatformService>();
             _genreServiceMock = new Mock<IGenreService>();
             _companyServiceMock = new Mock<ICompanyService>();
+            _imageServiceMock = new Mock<IGameImageService>();
             _mapperMock = new Mock<IMapper>();
 
             _controller = new GamesController(
@@ -37,6 +39,7 @@ namespace Games.Tests.Controllers
                 _platformServiceMock.Object,
                 _genreServiceMock.Object,
                 _companyServiceMock.Object,
+                _imageServiceMock.Object,
                 _mapperMock.Object
             );
         }

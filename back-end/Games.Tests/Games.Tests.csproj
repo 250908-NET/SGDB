@@ -32,4 +32,14 @@
     <ProjectReference Include="..\Games.Api\Games.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\key.txt">
+      <Link>key.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Target Name="CopyKeyFile" AfterTargets="Build">
+    <Copy SourceFiles="..\key.txt" DestinationFolder="$(OutDir)..\" />
+  </Target>
+
 </Project>

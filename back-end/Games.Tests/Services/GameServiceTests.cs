@@ -12,12 +12,14 @@ namespace Games.Tests.Services
     public class GameServiceTests
     {
         private readonly Mock<IGameRepository> _repoMock;
+        private readonly Mock<IGameImageService> _imageServiceMock;
         private readonly GameService _service;
 
         public GameServiceTests()
         {
             _repoMock = new Mock<IGameRepository>();
-            _service = new GameService(_repoMock.Object);
+            _imageServiceMock = new Mock<IGameImageService>();
+            _service = new GameService(_repoMock.Object, _imageServiceMock.Object);
         }
 
         [Fact]
@@ -67,9 +69,12 @@ namespace Games.Tests.Services
         public async Task CreateAsync_ShouldCallAddAndSave()
         {
             var game = new Game { GameId = 3, Name = "Metroid" };
+            _imageServiceMock.Setup(s => s.GetGameImageUrlAsync("Metroid"))
+                .ReturnsAsync("http://example.com/metroid.jpg");
 
             await _service.CreateAsync(game);
-
+            
+            Assert.Equal("http://example.com/metroid.jpg", game.ImageUrl);
             _repoMock.Verify(r => r.AddAsync(game), Times.Once);
             _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
         }
@@ -78,9 +83,12 @@ namespace Games.Tests.Services
         public async Task UpdateAsync_ShouldCallUpdateAndSave()
         {
             var game = new Game { GameId = 4, Name = "Doom" };
+             _imageServiceMock.Setup(s => s.GetGameImageUrlAsync("Doom"))
+                .ReturnsAsync("http://example.com/doom.jpg");
 
             await _service.UpdateAsync(game);
 
+            Assert.Equal("http://example.com/doom.jpg", game.ImageUrl);
             _repoMock.Verify(r => r.UpdateAsync(game), Times.Once);
             _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
         }
@@ -139,7 +147,8 @@ namespace Games.Tests.Services
         [Fact]
         public void Constructor_ShouldThrow_WhenRepoIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => new GameService(null!));
+            Assert.Throws<ArgumentNullException>(() => new GameService(null!, _imageServiceMock.Object));
+            Assert.Throws<ArgumentNullException>(() => new GameService(_repoMock.Object, null!));
         }
     }
 }

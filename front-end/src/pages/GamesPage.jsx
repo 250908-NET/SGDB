@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { GamesAPI } from "../api/games";
 import { GenresAPI } from "../api/genres";
+import { CompaniesAPI } from "../api/companies";
+import { PlatformsAPI } from "../api/platforms";
 
-/* tiny pill for platforms/genres */
+/* We render a small chip element for platform and genre labels. */
 const Chip = ({ text }) => (
   <span
     style={{
@@ -20,7 +22,7 @@ const Chip = ({ text }) => (
   </span>
 );
 
-/* one row in the left list */
+/* We render one selectable game row in the left list. */
 function GameListItem({ game, isSelected, onClick, genreNameFor }) {
   return (
     <button
@@ -49,11 +51,11 @@ function GameListItem({ game, isSelected, onClick, genreNameFor }) {
         <div style={{ fontSize: 12, color: "#666" }}>
           {game.genres.slice(0, 2).map((id, i) => (
             <span key={id}>
-              {i > 0 ? " · " : ""}
+              {i > 0 ? ", " : ""}
               {genreNameFor(id)}
             </span>
           ))}
-          {game.genres.length > 2 ? " · …" : ""}
+          {game.genres.length > 2 ? " ..." : ""}
         </div>
         <div style={{ fontSize: 12, color: "#999" }}>
           {new Date(game.releaseDate).getFullYear()}
@@ -64,20 +66,24 @@ function GameListItem({ game, isSelected, onClick, genreNameFor }) {
 }
 
 export default function GamesPage() {
-  // raw data from backend
+  // We store raw data from the backend.
   const [allGames, setAllGames] = useState([]);
-  const [genresById, setGenresById] = useState(new Map()); // id to name mapper
+  const [genresById, setGenresById] = useState(new Map()); // We map genre id to name.
 
-  // ui bits
+  // We store lookup maps for companies and platforms.
+  const [companiesById, setCompaniesById] = useState(new Map()); // We map company id to name.
+  const [platformsById, setPlatformsById] = useState(new Map()); // We map platform id to name.
+
+  // We store UI state for filters and selection.
   const [search, setSearch] = useState("");
-  const [genre, setGenre] = useState("ALL"); // stores a genreId or "ALL"
+  const [genre, setGenre] = useState("ALL"); // We store a genre id or "ALL".
   const [selected, setSelected] = useState(null);
 
-  // request state
+  // We track request state.
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // load games + genres together so we can render names immediately
+  // We load games, genres, companies, and platforms together so we can render names immediately.
   useEffect(() => {
     let cancel = false;
     (async () => {
@@ -85,20 +91,37 @@ export default function GamesPage() {
         setLoading(true);
         setError("");
 
-        const [gamesRaw, genresRaw] = await Promise.all([     //THIS IS WHERE WE CALL OUR APIS
-          GamesAPI.getAll(),   // [{ gameId, name, releaseDate, publisherId, developerId, platforms, genres, imageUrl }]
-          GenresAPI.getAll(),  // [{ genreId, name, games: [] }]
+        // We call all APIs in parallel.
+        const [gamesRaw, genresRaw, companiesRaw, platformsRaw] = await Promise.all([
+          GamesAPI.getAll(),
+          GenresAPI.getAll(),
+          CompaniesAPI.getAll(),
+          PlatformsAPI.getAll(),
         ]);
         if (cancel) return;
 
-        // build id maps to name map; normalize ids to strings for consistent lookup
-        const map = new Map(
-          (genresRaw || []).map((g) => [String(g.genreId), g.name]) //null safety before mapping
+        // We build a map from genre id (as string) to name.
+        const genresMap = new Map(
+          (genresRaw || []).map((g) => [String(g.genreId), g.name])
         );
-        setGenresById(map);
+        setGenresById(genresMap);
 
+        // We build a map from company id (as string) to name.
+        // We support either companyId or id based on the payload shape.
+        const companiesMap = new Map(
+          (companiesRaw || []).map((c) => [String(c.companyId ?? c.id), c.name])
+        );
+        setCompaniesById(companiesMap);
+
+        // We build a map from platform id (as string) to name.
+        const platformsMap = new Map(
+          (platformsRaw || []).map((p) => [String(p.platformId), p.name])
+        );
+        setPlatformsById(platformsMap);
+
+        // We store the raw game list and preselect the first game when available.
         setAllGames(gamesRaw || []);
-        setSelected((gamesRaw && gamesRaw[0]) || null); // preselect something
+        setSelected((gamesRaw && gamesRaw[0]) || null);
       } catch (e) {
         console.error(e);
         setError(e.message || "Failed to load games.");
@@ -111,10 +134,18 @@ export default function GamesPage() {
     };
   }, []);
 
-  // helper turns a genreId into a readable label
+  // We resolve a genre id to a human-readable label.
   const genreNameFor = (id) => genresById.get(String(id)) || `Genre ${id}`;
 
-  // dropdown options whatever actually exists in the list 
+  // We resolve a company id to a company name.
+  const companyNameFor = (id) =>
+    id == null ? "None" : (companiesById.get(String(id)) || `Company ${id}`);
+
+  // We resolve a platform id to a platform name.
+  const platformNameFor = (id) =>
+    platformsById.get(String(id)) || `Platform ${id}`;
+
+  // We compute available genres based on the current game list.
   const allGenres = useMemo(() => {
     const s = new Set();
     allGames.forEach((g) => (g.genres || []).forEach((id) => s.add(String(id))));
@@ -124,7 +155,7 @@ export default function GamesPage() {
     return ["ALL", ...arr];
   }, [allGames, genresById]);
 
-  // filter left list by search text (name) + selected genre
+  // We filter the left list by search text and selected genre.
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
     return allGames.filter((g) => {
@@ -143,7 +174,7 @@ export default function GamesPage() {
 
       {error && <div style={{ color: "#b00020", marginBottom: 12 }}>{error}</div>}
       {loading ? (
-        <div>Loading…</div>
+        <div>Loading...</div>
       ) : (
         <div
           style={{
@@ -153,7 +184,7 @@ export default function GamesPage() {
             alignItems: "start",
           }}
         >
-          {/* left: search, filter, results */}
+          {/* We render the search, filter, and results list on the left. */}
           <aside>
             <div
               style={{
@@ -165,7 +196,7 @@ export default function GamesPage() {
             >
               <input
                 type="text"
-                placeholder="Search games…"
+                placeholder="Search games..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
@@ -208,13 +239,13 @@ export default function GamesPage() {
               ))}
               {filtered.length === 0 && (
                 <div style={{ color: "#777", fontSize: 14, padding: "12px 4px" }}>
-                  No games match your filters.
+                  No games match the current filters.
                 </div>
               )}
             </div>
           </aside>
 
-          {/* right: details for the selected game */}
+          {/* We render details for the selected game on the right. */}
           <main>
             {selected ? (
               <div
@@ -244,19 +275,19 @@ export default function GamesPage() {
                   <div>
                     <h3 style={{ margin: "0 0 6px" }}>{selected.name}</h3>
 
-{/*this makes sure we only use fields from the backend*/ }
+                    {/* We show mapped names for publisher and developer. */}
                     <dl style={{ margin: 0, fontSize: 14, color: "#333" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
                         <dt style={{ color: "#666" }}>Release Date</dt>
                         <dd>{new Date(selected.releaseDate).toLocaleDateString()}</dd>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
-                        <dt style={{ color: "#666" }}>Publisher ID</dt>
-                        <dd>{selected.publisherId ?? "—"}</dd>
+                        <dt style={{ color: "#666" }}>Publisher</dt>
+                        <dd>{companyNameFor(selected.publisherId)}</dd>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
-                        <dt style={{ color: "#666" }}>Developer ID</dt>
-                        <dd>{selected.developerId ?? "—"}</dd>
+                        <dt style={{ color: "#666" }}>Developer</dt>
+                        <dd>{companyNameFor(selected.developerId)}</dd>
                       </div>
                     </dl>
 
@@ -265,7 +296,7 @@ export default function GamesPage() {
                         Platforms
                       </div>
                       {(selected.platforms || []).map((p) => (
-                        <Chip key={p} text={p} />
+                        <Chip key={p} text={platformNameFor(p)} />
                       ))}
                     </div>
 

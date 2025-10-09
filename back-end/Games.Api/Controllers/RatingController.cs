@@ -26,7 +26,7 @@ public class RatingController : ControllerBase
         _mapper = mapper;
     }
 
-    // GET /api/ratings
+    // GET /api/rating
     [HttpGet(Name = "GetAllRatings")]
     public async Task<IActionResult> GetAllAsync()
     {
@@ -35,7 +35,7 @@ public class RatingController : ControllerBase
         return Ok(_mapper.Map<List<RatingDto>>(ratings));
     }
 
-    // GET /api/ratings/game/{gameId}
+    // GET /api/rating/game/{gameId}
     [HttpGet("game/{gameId}", Name = "GetRatingsByGameId")]
     public async Task<IActionResult> GetByGameIdAsync(int gameId)
     {
@@ -44,7 +44,7 @@ public class RatingController : ControllerBase
         return Ok(_mapper.Map<List<RatingDto>>(ratings));
     }
 
-    // GET /api/ratings/user/{userId}
+    // GET /api/rating/user/{userId}
     [HttpGet("user/{userId}", Name = "GetRatingsByUserId")]
     public async Task<IActionResult> GetByUserIdAsync(int userId)
     {
@@ -53,56 +53,43 @@ public class RatingController : ControllerBase
         return Ok(_mapper.Map<List<RatingDto>>(ratings));
     }
 
-    // GET /api/ratings/{userId}/{gameId}
-    [HttpGet("{userId}/{gameId}", Name = "GetRatingByCompositeKey")]
-    public async Task<IActionResult> GetByCompositeKeyAsync(int userId, int gameId)
-    {
-        _logger.LogInformation("Getting rating for user {UserId} and game {GameId}", userId, gameId);
-        var ratings = await _service.GetByUserIdAsync(userId);
-        var rating = ratings.FirstOrDefault(r => r.GameId == gameId);
-        if (rating is null)
-        {
-            return NotFound("Rating not found.");
-        }
-        return Ok(_mapper.Map<RatingDto>(rating));
-    }
-
-    // POST /api/ratings
+    // POST /api/rating
     [HttpPost(Name = "CreateRating")]
     public async Task<IActionResult> CreateAsync([FromBody] RatingDto dto)
     {
-
         if (dto == null)
             return BadRequest("Rating data is required.");
 
-        var existingRatings = await _service.GetByUserIdAsync(dto.UserId);
         var user = await _userService.GetUserByIdAsync(dto.UserId);
-        var game = await _gameService.GetByIdAsync(dto.GameId);
-        if (existingRatings.Any(r => r.GameId == dto.GameId))
-            return Conflict("Rating already exists for this user and game.");
-
         if (user == null)
             return NotFound("User not found.");
 
+        var game = await _gameService.GetByIdAsync(dto.GameId);
         if (game == null)
             return NotFound("Game not found.");
-        
-        var errors = new List<string>();
 
+        var existingRatings = await _service.GetByUserIdAsync(dto.UserId);
+        if (existingRatings.Any(r => r.GameId == dto.GameId))
+            return Conflict("Rating already exists for this user and game.");
+
+        var errors = new List<string>();
         if (dto.Rate < 1 || dto.Rate > 10)
             errors.Add("Rating score must be between 1 and 10.");
-
         if (string.IsNullOrWhiteSpace(dto.Title))
             errors.Add("Title is required and cannot be empty.");
 
         if (errors.Any())
             return BadRequest(new { Errors = errors });
-        
+
         _logger.LogInformation("Creating rating {@dto}", dto);
         var rating = _mapper.Map<Rating>(dto);
         await _service.CreateAsync(rating);
-        return Created($"/api/ratings/user/{rating.UserId}/game/{rating.GameId}", _mapper.Map<RatingDto>(rating));
-        
+
+        return CreatedAtRoute(
+        "GetRatingByCompositeKey",
+        new { userId = rating.UserId, gameId = rating.GameId },
+        _mapper.Map<RatingDto>(rating)
+);
     }
 
     [HttpPut("{userId}/{gameId}", Name = "UpdateRating")]
@@ -128,7 +115,7 @@ public class RatingController : ControllerBase
     }
 
 
-    // DELETE /api/ratings/{userId}/{gameId}
+    // DELETE /api/rating/{userId}/{gameId}
     [HttpDelete("{userId}/{gameId}", Name = "DeleteRating")]
     public async Task<IActionResult> DeleteAsync(int userId, int gameId)
     {
@@ -137,9 +124,20 @@ public class RatingController : ControllerBase
         var existing = userRatings.FirstOrDefault(r => r.GameId == gameId);
         if (existing == null)
             return NotFound("Rating not found.");
-        
+
         _logger.LogInformation("Deleting rating for user {UserId} and game {GameId}", userId, gameId);
         await _service.DeleteAsync(userId, gameId);
         return NoContent();
+    }
+    
+    [HttpGet("{userId}/{gameId}", Name = "GetRatingByCompositeKey")]
+    public async Task<IActionResult> GetByCompositeKeyAsync(int userId, int gameId)
+    {
+        _logger.LogInformation("Getting rating for user {UserId} and game {GameId}", userId, gameId);
+        var rating = await _service.GetByCompositeKeyAsync(userId, gameId);
+        if (rating is null)
+            return NotFound("Rating not found.");
+
+        return Ok(_mapper.Map<RatingDto>(rating));
     }
 }

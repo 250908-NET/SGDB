@@ -75,7 +75,12 @@ public class RatingControllerTests : IClassFixture<TestWebApplicationFactory<Pro
         };
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/rating", newRating);
-        var createdRating = await response.Content.ReadFromJsonAsync<Rating>();
+
+        string responseContent = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created,
+            $"Expected Created but got {response.StatusCode}. Response: {responseContent}");
+
+        var createdRating = await response.Content.ReadFromJsonAsync<RatingDto>();
 
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
         createdRating.Should().NotBeNull();
@@ -99,6 +104,7 @@ public class RatingControllerTests : IClassFixture<TestWebApplicationFactory<Pro
         };
 
         HttpResponseMessage response = await client.PutAsJsonAsync("/api/rating/1/1", updatedRating);
+        response.EnsureSuccessStatusCode();
         var rating = await response.Content.ReadFromJsonAsync<Rating>();
 
         response.EnsureSuccessStatusCode();

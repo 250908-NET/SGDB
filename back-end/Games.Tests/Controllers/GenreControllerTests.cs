@@ -17,6 +17,7 @@ namespace Games.Tests.Controllers
     {
         private readonly Mock<ILogger<GenresController>> _mockLogger;
         private readonly Mock<IGenreService> _mockService;
+        private readonly Mock<IGameService> _mockGameService;
         private readonly Mock<IMapper> _mockMapper;
         private readonly GenresController _controller;
 
@@ -24,12 +25,19 @@ namespace Games.Tests.Controllers
         {
             _mockLogger = new Mock<ILogger<GenresController>>();
             _mockService = new Mock<IGenreService>();
+            _mockGameService = new Mock<IGameService>();
             _mockMapper = new Mock<IMapper>();
-            _controller = new GenresController(_mockLogger.Object, _mockService.Object, _mockMapper.Object);
+
+            _controller = new GenresController(
+                _mockLogger.Object,
+                _mockService.Object,
+                _mockGameService.Object,
+                _mockMapper.Object
+            );
         }
 
         [Fact]
-        public async Task GetGenres_ShouldReturnOk_WithMappedGenres()
+        public async Task GetAllAsync_ShouldReturnOk_WithMappedGenres()
         {
             // Arrange
             var genres = new List<Genre>
@@ -47,10 +55,10 @@ namespace Games.Tests.Controllers
             _mockMapper.Setup(m => m.Map<List<GenreDto>>(genres)).Returns(genreDtos);
 
             // Act
-            var result = await _controller.GetGenres();
+            var result = await _controller.GetAllAsync();
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var okResult = Assert.IsType<OkObjectResult>(result);
             var returnValue = Assert.IsAssignableFrom<IEnumerable<GenreDto>>(okResult.Value);
             Assert.Equal(2, ((List<GenreDto>)returnValue).Count);
         }
@@ -92,12 +100,20 @@ namespace Games.Tests.Controllers
         public async Task CreateGenre_ShouldReturnCreated_WithGenreDto()
         {
             // Arrange
-            var createDto = new CreateGenreDto { Name = "Horror" };
+            var createDto = new CreateGenreDto
+            {
+                Name = "Horror",
+                Games = new List<int> { 1 }
+            };
+
             var genre = new Genre { GenreId = 1, Name = "Horror" };
             var dto = new GenreDto { GenreId = 1, Name = "Horror" };
 
             _mockMapper.Setup(m => m.Map<Genre>(createDto)).Returns(genre);
             _mockMapper.Setup(m => m.Map<GenreDto>(genre)).Returns(dto);
+            _mockService.Setup(s => s.CreateAsync(It.IsAny<Genre>())).Returns(Task.CompletedTask);
+            _mockGameService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new Game { GameId = 1 });
+            _mockGameService.Setup(s => s.LinkGameToGenreAsync(1, 1)).Returns(Task.CompletedTask);
 
             // Act
             var result = await _controller.CreateGenre(createDto);
@@ -114,13 +130,16 @@ namespace Games.Tests.Controllers
         {
             // Arrange
             var existing = new Genre { GenreId = 1, Name = "Old" };
-            var dto = new UpdateGenreDto { Name = "Updated" };
+            var dto = new UpdateGenreDto { Name = "Updated", Games = new List<int> { 1 } };
             var updated = new GenreDto { GenreId = 1, Name = "Updated" };
 
             _mockService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(existing);
+            _mockService.Setup(s => s.ClearGenreGamesAsync(1)).Returns(Task.CompletedTask);
             _mockMapper.Setup(m => m.Map(dto, existing));
             _mockService.Setup(s => s.UpdateAsync(existing)).Returns(Task.CompletedTask);
             _mockMapper.Setup(m => m.Map<GenreDto>(existing)).Returns(updated);
+            _mockGameService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new Game { GameId = 1 });
+            _mockGameService.Setup(s => s.LinkGameToGenreAsync(1, 1)).Returns(Task.CompletedTask);
 
             // Act
             var result = await _controller.UpdateGenre(1, dto);
@@ -135,7 +154,7 @@ namespace Games.Tests.Controllers
         public async Task UpdateGenre_ShouldReturnNotFound_WhenGenreMissing()
         {
             // Arrange
-            var dto = new UpdateGenreDto { Name = "Updated" };
+            var dto = new UpdateGenreDto { Name = "Updated", Games = new List<int>() };
             _mockService.Setup(s => s.GetByIdAsync(5)).ReturnsAsync((Genre?)null);
 
             // Act
@@ -152,6 +171,8 @@ namespace Games.Tests.Controllers
             // Arrange
             var existing = new Genre { GenreId = 1, Name = "Action" };
             _mockService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(existing);
+            _mockService.Setup(s => s.ClearGenreGamesAsync(1)).Returns(Task.CompletedTask);
+            _mockService.Setup(s => s.DeleteAsync(1)).Returns(Task.CompletedTask);
 
             // Act
             var result = await _controller.DeleteGenre(1);

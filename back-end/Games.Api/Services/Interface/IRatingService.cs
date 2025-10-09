@@ -10,4 +10,6 @@ public interface IRatingService
     Task<Rating> CreateAsync(Rating rating);
     Task UpdateAsync(int userId, int gameId, Rating rating);
     Task DeleteAsync(int userId, int gameId);
+    Task<Rating?> GetByCompositeKeyAsync(int userId, int gameId);
+
 }
