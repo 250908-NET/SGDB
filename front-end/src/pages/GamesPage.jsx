@@ -1,74 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { GamesAPI } from "../api/games";
+import { GenresAPI } from "../api/genres";
 
-/* ----------------------------------------------------------------------------
-   STUB that mirrors our Swagger for GET /api/Games
-   {
-     gameId: number,
-     name: string,
-     releaseDate: ISO string,
-     publisherId: number,
-     developerId: number,
-     platforms: string[],   // ids or codes from  backend
-     genres: string[],      // ids  from  backend
-     imageUrl: string
-   }
----------------------------------------------------------------------------- */
-const STUB_CATALOG = [
-  {
-    gameId: 1,
-    name: "Hollow Knight",
-    releaseDate: "2017-02-24T00:00:00Z",
-    publisherId: 3,
-    developerId: 3,
-    platforms: ["pc", "switch", "ps4", "xbox"],
-    genres: ["1", "2"], // pretend "1"=Action for example
-    imageUrl: "https://placehold.co/256x256?text=Hollow+Knight",
-  },
-  {
-    gameId: 2,
-    name: "Celeste",
-    releaseDate: "2018-01-25T00:00:00Z",
-    publisherId: 5,
-    developerId: 5,
-    platforms: ["pc", "switch", "ps4", "xbox"],
-    genres: ["2", "3"], 
-    imageUrl: "https://placehold.co/256x256?text=Celeste",
-  },
-  {
-    gameId: 3,
-    name: "Hades",
-    releaseDate: "2020-09-17T00:00:00Z",
-    publisherId: 7,
-    developerId: 7,
-    platforms: ["pc", "switch", "ps5", "xbox"],
-    genres: ["1", "4"], 
-    imageUrl: "https://placehold.co/256x256?text=Hades",
-  },
-  {
-    gameId: 4,
-    name: "Stardew Valley",
-    releaseDate: "2016-02-26T00:00:00Z",
-    publisherId: 9,
-    developerId: 9,
-    platforms: ["pc", "switch", "ps4", "xbox", "mobile"],
-    genres: ["5", "2"], 
-    imageUrl: "https://placehold.co/256x256?text=Stardew+Valley",
-  },
-];
-
-/* NOTE on genre names
-   backend returns genre IDs. We show IDs for now.
-   when we want readable names before wiring /api/Genres, will need to add a tiny lookup
-   for now we’ll keep it literally what the API returns. */
-
-/* fake network delay so Loading… shows up */
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function fetchGamesStub() {
-  await sleep(250);
-  return STUB_CATALOG;
-}
-
-/* little mini component for platforms/genres */
+/* tiny pill for platforms/genres */
 const Chip = ({ text }) => (
   <span
     style={{
@@ -87,7 +21,7 @@ const Chip = ({ text }) => (
 );
 
 /* one row in the left list */
-function GameListItem({ game, isSelected, onClick }) {
+function GameListItem({ game, isSelected, onClick, genreNameFor }) {
   return (
     <button
       onClick={() => onClick(game)}
@@ -112,9 +46,13 @@ function GameListItem({ game, isSelected, onClick }) {
       />
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 600 }}>{game.name}</div>
-        {/* show up to two genre IDs to keep the row tight */}
         <div style={{ fontSize: 12, color: "#666" }}>
-          {game.genres.slice(0, 2).join(" · ")}
+          {game.genres.slice(0, 2).map((id, i) => (
+            <span key={id}>
+              {i > 0 ? " · " : ""}
+              {genreNameFor(id)}
+            </span>
+          ))}
           {game.genres.length > 2 ? " · …" : ""}
         </div>
         <div style={{ fontSize: 12, color: "#999" }}>
@@ -126,32 +64,44 @@ function GameListItem({ game, isSelected, onClick }) {
 }
 
 export default function GamesPage() {
-  // whole list from backend
+  // raw data from backend
   const [allGames, setAllGames] = useState([]);
-  // ui controls
+  const [genresById, setGenresById] = useState(new Map()); // id to name mapper
+
+  // ui bits
   const [search, setSearch] = useState("");
-  const [genre, setGenre] = useState("ALL"); // dropdown value
-  // selection + request state
+  const [genre, setGenre] = useState("ALL"); // stores a genreId or "ALL"
   const [selected, setSelected] = useState(null);
+
+  // request state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-
-
-  // first load stubs for now replace
+  // load games + genres together so we can render names immediately
   useEffect(() => {
     let cancel = false;
     (async () => {
       try {
         setLoading(true);
         setError("");
-        const data = await fetchGamesStub();
+
+        const [gamesRaw, genresRaw] = await Promise.all([     //THIS IS WHERE WE CALL OUR APIS
+          GamesAPI.getAll(),   // [{ gameId, name, releaseDate, publisherId, developerId, platforms, genres, imageUrl }]
+          GenresAPI.getAll(),  // [{ genreId, name, games: [] }]
+        ]);
         if (cancel) return;
-        setAllGames(data);
-        setSelected(data[0] ?? null); // preselect something so the right side isn’t empty
+
+        // build id maps to name map; normalize ids to strings for consistent lookup
+        const map = new Map(
+          (genresRaw || []).map((g) => [String(g.genreId), g.name]) //null safety before mapping
+        );
+        setGenresById(map);
+
+        setAllGames(gamesRaw || []);
+        setSelected((gamesRaw && gamesRaw[0]) || null); // preselect something
       } catch (e) {
         console.error(e);
-        setError("Failed to load games.");
+        setError(e.message || "Failed to load games.");
       } finally {
         if (!cancel) setLoading(false);
       }
@@ -161,19 +111,26 @@ export default function GamesPage() {
     };
   }, []);
 
-  // build the genre dropdown from what we actually have in the list IDs for now
+  // helper turns a genreId into a readable label
+  const genreNameFor = (id) => genresById.get(String(id)) || `Genre ${id}`;
+
+  // dropdown options whatever actually exists in the list 
   const allGenres = useMemo(() => {
     const s = new Set();
-    allGames.forEach((g) => g.genres.forEach((id) => s.add(id)));
-    return ["ALL", ...Array.from(s).sort()];
-  }, [allGames]);
+    allGames.forEach((g) => (g.genres || []).forEach((id) => s.add(String(id))));
+    const arr = Array.from(s).sort((a, b) =>
+      genreNameFor(a).toLowerCase().localeCompare(genreNameFor(b).toLowerCase())
+    );
+    return ["ALL", ...arr];
+  }, [allGames, genresById]);
 
-  // filter left list by search text (name) + selected genre id
+  // filter left list by search text (name) + selected genre
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
     return allGames.filter((g) => {
       const byText = t ? g.name.toLowerCase().includes(t) : true;
-      const byGenre = genre === "ALL" ? true : g.genres.includes(genre);
+      const byGenre =
+        genre === "ALL" ? true : (g.genres || []).map(String).includes(genre);
       return byText && byGenre;
     });
   }, [allGames, search, genre]);
@@ -191,12 +148,12 @@ export default function GamesPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "360px 1fr", // left list / right detail
+            gridTemplateColumns: "360px 1fr", // left list / right details
             gap: 24,
             alignItems: "start",
           }}
         >
-          {/* left panel with search + filter + results */}
+          {/* left search, filter, results */}
           <aside>
             <div
               style={{
@@ -206,7 +163,6 @@ export default function GamesPage() {
                 alignItems: "center",
               }}
             >
-              {/* simple text search on game.name */}
               <input
                 type="text"
                 placeholder="Search games…"
@@ -219,7 +175,6 @@ export default function GamesPage() {
                   border: "1px solid #e5e7eb",
                 }}
               />
-              {/* genre dropdown uses IDs for now since thats what apis give us */}
               <select
                 value={genre}
                 onChange={(e) => setGenre(e.target.value)}
@@ -229,13 +184,15 @@ export default function GamesPage() {
                   border: "1px solid #e5e7eb",
                   background: "#fff",
                 }}
-                aria-label="Filter by genre id"
+                aria-label="Filter by genre"
               >
-                {allGenres.map((g) => (
-                  <option key={g} value={g}>
-                    {g === "ALL" ? "All genres" : `Genre ${g}`}
-                  </option>
-                ))}
+                {allGenres.map((id) =>
+                  id === "ALL" ? (
+                    <option key="ALL" value="ALL">All genres</option>
+                  ) : (
+                    <option key={id} value={id}>{genreNameFor(id)}</option>
+                  )
+                )}
               </select>
             </div>
 
@@ -246,6 +203,7 @@ export default function GamesPage() {
                   game={g}
                   isSelected={selected?.gameId === g.gameId}
                   onClick={handleSelect}
+                  genreNameFor={genreNameFor}
                 />
               ))}
               {filtered.length === 0 && (
@@ -256,7 +214,7 @@ export default function GamesPage() {
             </div>
           </aside>
 
-          {/* right panel for details about whichever game is selected */}
+          {/* right details for the selected game */}
           <main>
             {selected ? (
               <div
@@ -286,7 +244,7 @@ export default function GamesPage() {
                   <div>
                     <h3 style={{ margin: "0 0 6px" }}>{selected.name}</h3>
 
-                    {/* should match our backend */}
+                    {/* only show fields your backend actually returns */}
                     <dl style={{ margin: 0, fontSize: 14, color: "#333" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
                         <dt style={{ color: "#666" }}>Release Date</dt>
@@ -306,17 +264,17 @@ export default function GamesPage() {
                       <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
                         Platforms
                       </div>
-                      {selected.platforms.map((p) => (
+                      {(selected.platforms || []).map((p) => (
                         <Chip key={p} text={p} />
                       ))}
                     </div>
 
                     <div style={{ marginTop: 10 }}>
                       <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
-                        Genres (IDs)
+                        Genres
                       </div>
-                      {selected.genres.map((g) => (
-                        <Chip key={g} text={g} />
+                      {(selected.genres || []).map((id) => (
+                        <Chip key={id} text={genreNameFor(id)} />
                       ))}
                     </div>
                   </div>
