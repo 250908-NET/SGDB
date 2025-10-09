@@ -125,11 +125,11 @@ export default function GamesPage() {
     return ["ALL", ...arr];
   }, [allGames, genresById]);
 
-  // filter left list by search text (name) + selected genre
+  // filter left list by search text name and selected genre
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
     return allGames.filter((g) => {
-      const byText = t ? g.name.toLowerCase().includes(t) : true;
+      const byText = t ? g.name.toLowerCase().includes(t) : true; //if gamename includes input display that game on list
       const byGenre =
         genre === "ALL" ? true : (g.genres || []).map(String).includes(genre);
       return byText && byGenre;
