@@ -71,6 +71,7 @@ public class UserController : ControllerBase
     }
 
     // Update a user by Id
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{id}", Name = "UpdateUser")]
     public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateUserDto dto)
     {
@@ -88,6 +89,7 @@ public class UserController : ControllerBase
     }
 
     // Delete a user by Id
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{id}", Name = "DeleteUser")]
     public async Task<IActionResult> DeleteAsync(int id)
     {
@@ -103,6 +105,7 @@ public class UserController : ControllerBase
 
 
     // LINKING LOGIC
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost("{userId}/genres/{genreId}")]
     public async Task<IActionResult> LinkUserToGenre(int userId, int genreId)
     {
@@ -110,6 +113,7 @@ public class UserController : ControllerBase
         return Ok(new { Message = "Linked successfully", UserId = userId, GenreId = genreId });
     }
 
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{userId}/genres/{genreId}")]
     public async Task<IActionResult> UnlinkUserFromGenre(int userId, int genreId)
     {
@@ -117,6 +121,7 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost("{userId}/games/{gameId}")]
     public async Task<IActionResult> LinkUserToGame(int userId, int gameId)
     {
@@ -124,6 +129,7 @@ public class UserController : ControllerBase
         return Ok(new { Message = "Linked successfully", UserId = userId, GameId = gameId });
     }
 
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{userId}/games/{gameId}")]
     public async Task<IActionResult> UnlinkUserFromGame(int userId, int gameId)
     {

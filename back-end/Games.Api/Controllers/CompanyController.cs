@@ -28,6 +28,7 @@ public class CompanyController : ControllerBase
     }
 
     // Get all companies
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet(Name = "GetAllCompanies")]
     public async Task<IActionResult> GetAllAsync()
     {
@@ -37,6 +38,7 @@ public class CompanyController : ControllerBase
     }
 
     // Get a company by companyId
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("{id}", Name = "GetCompanyById")]
     public async Task<IActionResult> GetByIdAsync(int id)
     {
@@ -52,6 +54,7 @@ public class CompanyController : ControllerBase
     }
 
     // Create company
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost(Name = "CreateCompany")]
     public async Task<IActionResult> CreateAsync([FromBody] CreateCompanyDto dto)
     {
@@ -90,6 +93,7 @@ public class CompanyController : ControllerBase
     }
 
     // Update company
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{id}", Name = "UpdateCompany")]
     public async Task<IActionResult> UpdateCompany(int id, UpdateCompanyDto dto)
     {
@@ -136,6 +140,7 @@ public class CompanyController : ControllerBase
     }
 
     /// DELETE: delete company
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{id}", Name = "DeleteCompany")]
     public async Task<IActionResult> DeleteAsync(int id)
     {

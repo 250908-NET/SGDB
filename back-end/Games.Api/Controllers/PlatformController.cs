@@ -25,6 +25,7 @@ public class PlatformsController : ControllerBase
     }
 
     // GET: receive all platforms
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet(Name = "GetAllPlatforms")]
     public async Task<ActionResult<IEnumerable<PlatformDto>>> GetPlatforms()
     {
@@ -34,6 +35,7 @@ public class PlatformsController : ControllerBase
     }
 
     // GET: receive platform by id
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpGet("{id}", Name = "GetPlatformById")]
     public async Task<ActionResult<PlatformDto>> GetPlatform(int id)
     {
@@ -45,6 +47,7 @@ public class PlatformsController : ControllerBase
     }
 
     // POST: create new platform
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPost(Name = "CreatePlatform")]
     public async Task<ActionResult<PlatformDto>> CreatePlatform(CreatePlatformDto dto)
     {
@@ -55,6 +58,7 @@ public class PlatformsController : ControllerBase
     }
 
     // PUT: update platform
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpPut("{id}", Name = "UpdatePlatform")]
     public async Task<IActionResult> UpdatePlatform(int id, UpdatePlatformDto dto)
     {
@@ -72,6 +76,7 @@ public class PlatformsController : ControllerBase
     }
 
     // DELETE: delete platform
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [HttpDelete("{id}", Name = "DeletePlatform")]
     public async Task<IActionResult> DeletePlatform(int id)
     {
