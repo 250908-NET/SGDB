@@ -1,66 +1,59 @@
 import { apiFetch } from "./client";
 
-// GET all users
+
 function getAll() {
-  return apiFetch("/user");
+  return apiFetch("/User");
 }
 
-// GET by ID
 function getById(userId) {
-  return apiFetch(`/user/${userId}`);
+  return apiFetch(`/User/${userId}`);
 }
 
-// GET by username
 function getByUsername(username) {
-  return apiFetch(`/user/username/${encodeURIComponent(username)}`);
+  return apiFetch(`/User/username/${encodeURIComponent(username)}`);
 }
 
-// CREATE user
 function create(userData) {
-  return apiFetch("/user", {
+  return apiFetch("/User", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(userData),
+    body: userData,
   });
 }
 
-// UPDATE user
 function update(userId, userData) {
-  return apiFetch(`/user/${userId}`, {
+  return apiFetch(`/User/${userId}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(userData),
+    body: userData,
   });
 }
 
-// DELETE user
 function remove(userId) {
-  return apiFetch(`/user/${userId}`, {
+  return apiFetch(`/User/${userId}`, {
     method: "DELETE",
   });
 }
 
-// LINKING logic
+// Linking
 function linkGenre(userId, genreId) {
-  return apiFetch(`/user/${userId}/genres/${genreId}`, {
+  return apiFetch(`/User/${userId}/genres/${genreId}`, {
     method: "POST",
   });
 }
 
 function unlinkGenre(userId, genreId) {
-  return apiFetch(`/user/${userId}/genres/${genreId}`, {
+  return apiFetch(`/User/${userId}/genres/${genreId}`, {
     method: "DELETE",
   });
 }
 
 function linkGame(userId, gameId) {
-  return apiFetch(`/user/${userId}/games/${gameId}`, {
+  return apiFetch(`/User/${userId}/games/${gameId}`, {
     method: "POST",
   });
 }
 
 function unlinkGame(userId, gameId) {
-  return apiFetch(`/user/${userId}/games/${gameId}`, {
+  return apiFetch(`/User/${userId}/games/${gameId}`, {
     method: "DELETE",
   });
 }
