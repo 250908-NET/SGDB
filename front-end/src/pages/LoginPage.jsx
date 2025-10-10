@@ -31,14 +31,19 @@ export default function LoginPage({ onLogin }) {
       // Call backend: GET /api/user/username/{username}
       // let user1 = await UsersAPI.getByUsername(trimmed);
       // console.log("User found:", user1);
-      
-      let user = await AuthAPI.loginAccount({ username: trimmed });
+      let user = await UsersAPI.getByUsername(trimmed);
+      let auth = await AuthAPI.loginAccount({ username: trimmed });
       console.log("User found:", user);
 
       setMessage("Logged in successfully!");
       
 
-      if (onLogin) onLogin(user); // Pass user data up to parent (App)
+      if (onLogin)
+        console.log("Role:", user.role);
+        onLogin({
+          username: user.username ?? trimmed,
+          role: user.role ?? "user",
+        });
     } 
     catch (err) {
       console.error("Login error:", err);
@@ -104,13 +109,16 @@ export default function LoginPage({ onLogin }) {
 
       let result = await AuthAPI.createAccount(newUserData);
       console.log("User registered:", trimmed);
-
-      setMessage(`Account created for "${result.username}"!`);
-      if (onLogin) onLogin(result); 
+      
+      setMessage(`Account created for "${trimmed}"!`);
+      setError("");
+      //if (onLogin) onLogin(result); 
     }
     
     catch (err) {
+      
       console.error("Register error:", err);
+      setMessage(``);
       setError(`Could not create user "${trimmed}".`);
     } 
     finally {
@@ -147,6 +155,7 @@ export default function LoginPage({ onLogin }) {
           Register
         </button>
 
+        {message && <p className="message-text">{message}</p>}
         {error && <p className="error-text">{error}</p>}
       </form>
     </div>

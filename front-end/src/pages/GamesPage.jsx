@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useApp } from "../context/AppContext";
 import { GamesAPI } from "../api/games";
 import { GenresAPI } from "../api/genres";
 import { CompaniesAPI } from "../api/companies";
@@ -172,6 +173,9 @@ export default function GamesPage() {
     <section className="page" style={{ maxWidth: 1200, margin: "0 auto" }}>
       <h2>Games</h2>
 
+    
+
+      
       {error && <div style={{ color: "#b00020", marginBottom: 12 }}>{error}</div>}
       {loading ? (
         <div>Loading...</div>

@@ -16,6 +16,7 @@ export function AppProvider({ children }) {
   const [username, setUsername] = useState(null);     // e.g., "tester"
   const [avatarUrl, setAvatarUrl] = useState(null);   // URL for profile image we can maybe add this later with external api
   const [authToken, setAuthToken] = useState(null);   // JWT/access token 
+  const [role, setRole] = useState(null);             // role e.g admin
 
   // Convenience methods 
   const login = (user) => {
@@ -24,6 +25,7 @@ export function AppProvider({ children }) {
     setUsername(user?.username ?? null);
     setAvatarUrl(user?.avatarUrl ?? null);
     setAuthToken(user?.token ?? null);
+    setRole(user?.role ?? null);
   };
 
   const logout = () => {
@@ -31,17 +33,18 @@ export function AppProvider({ children }) {
     setUsername(null);
     setAvatarUrl(null);
     setAuthToken(null);
+    setRole(null); 
   };
 
   // we can use this to cache slow to get data
   const value = useMemo(() => ({
     // state
-    userId, username, avatarUrl, authToken,
+    userId, username, avatarUrl, authToken, role, 
     // setters 
-    setUserId, setUsername, setAvatarUrl, setAuthToken,
+    setUserId, setUsername, setAvatarUrl, setAuthToken, setRole,
     // helpers
     login, logout,
-  }), [userId, username, avatarUrl, authToken]);
+  }), [userId, username, avatarUrl, authToken, role]);
 
   // Make the value available to all descendants
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

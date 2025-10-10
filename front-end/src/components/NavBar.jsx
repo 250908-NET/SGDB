@@ -1,5 +1,5 @@
 // src/components/NavBar.jsx
-export default function NavBar({ route, onNavigate, onLogout }) {
+export default function NavBar({ route, onNavigate, onLogout, role }) {
   return (
     <nav className="app-navbar" aria-label="Primary">
       <button
@@ -16,6 +16,17 @@ export default function NavBar({ route, onNavigate, onLogout }) {
       >
         Games
       </button>
+
+      {role === "admin" && (
+        <button
+          className="app-nav-btn"
+          onClick={() => onNavigate("admin")}
+          aria-current={route === "admin" ? "page" : undefined}
+        >
+          Admin
+        </button>
+      )}
+
       <button className="app-nav-btn" onClick={onLogout}>Logout</button>
     </nav>
   );
