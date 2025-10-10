@@ -57,7 +57,7 @@ export default function LoginPage({ onLogin }) {
     }
   }
 
-//handle requestss
+//handle requests
   async function handleRegister() {
     const trimmed = username.trim();
     if (!trimmed) {
