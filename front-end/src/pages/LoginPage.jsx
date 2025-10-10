@@ -33,19 +33,21 @@ export default function LoginPage({ onLogin }) {
       // verify cookie is set
       try {
         await AuthAPI.testAuthorization();
-      } catch {
+      } 
+      catch {
       }
 
       setMessage("Logged in successfully!");
       
-
+      let user = await UsersAPI.getByUsername(trimmed);
       if (onLogin)
         console.log("Role:", user.role);
         onLogin({
           username: user.username ?? trimmed,
           role: user.role ?? "user",
         });
-    } 
+    }
+    
     catch (err) {
       console.error("Login error:", err);
       // Show server error msg if there is one
@@ -103,11 +105,13 @@ export default function LoginPage({ onLogin }) {
 
       setMessage(`Account created for "${trimmed}"!`);
       if (onLogin) onLogin({ username: trimmed });
-    } catch (err) {
+    } 
+    catch (err) {
       console.error("Register error:", err);
       // If backend sends error message, throw it here
       setError(err?.message || `Could not create user "${trimmed}".`);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   }
