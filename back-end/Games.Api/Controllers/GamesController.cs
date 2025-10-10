@@ -56,63 +56,52 @@ public class GamesController : ControllerBase
     }
 
     // Add a game to DB
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    [HttpPost(Name = "CreateGame")]
+        [HttpPost(Name = "CreateGame")]
     public async Task<IActionResult> CreateAsync([FromBody] CreateGameDto dto)
     {
         _logger.LogInformation("Creating game {@dto}", dto);
-        
-        // Validate if Publisher exists
+
+        // --- Validation (unchanged) ---
         var publisher = await _companyService.GetByIdAsync(dto.PublisherId);
-        if (publisher is null)
-        {
-            return NotFound($"Publisher with ID {dto.PublisherId} not found.");
-        }
-
-        // Validate if Developer exists
+        if (publisher is null) return NotFound($"Publisher with ID {dto.PublisherId} not found.");
         var developer = await _companyService.GetByIdAsync(dto.DeveloperId);
-        if (developer is null)
-        {
-            return NotFound($"Developer with ID {dto.DeveloperId} not found.");
-        }
+        if (developer is null) return NotFound($"Developer with ID {dto.DeveloperId} not found.");
 
-        // Validate if all referenced platforms exist
         var validPlatforms = new List<int>();
         foreach (var pid in dto.PlatformIds.Distinct())
         {
-            var platform = await _platformService.GetByIdAsync(pid);
-            if (platform is null)
+            if (await _platformService.GetByIdAsync(pid) is null)
                 return NotFound($"Platform with ID {pid} not found.");
             validPlatforms.Add(pid);
         }
 
-        // Validate all referenced genres exist
         var validGenres = new List<int>();
         foreach (var gid in dto.GenreIds.Distinct())
         {
-            var genre = await _genreService.GetByIdAsync(gid);
-            if (genre is null)
+            if (await _genreService.GetByIdAsync(gid) is null)
                 return NotFound($"Genre with ID {gid} not found.");
             validGenres.Add(gid);
         }
 
+        // --- Create game ---
         var game = _mapper.Map<Game>(dto);
         await _service.CreateAsync(game);
-        
-        // Link platforms
-        foreach (var platformId in validPlatforms)
-        {
-            await _service.LinkGameToPlatformAsync(game.GameId, platformId);
-        }
 
-        // Link genres
+        // --- Link entities ---
         foreach (var genreId in validGenres)
-        {
             await _service.LinkGameToGenreAsync(game.GameId, genreId);
-        }
 
-        return Created($"/api/games/{game.GameId}", _mapper.Map<GameDto>(game));
+        foreach (var platformId in validPlatforms)
+            await _service.LinkGameToPlatformAsync(game.GameId, platformId);
+
+        // --- Force reload from DB (detached fresh query) ---
+        var reloaded = await _service.GetByIdAsync(game.GameId);
+        if (reloaded == null)
+            return Problem("Failed to reload the created game from database.");
+
+        return Created($"/api/games/{reloaded.GameId}", _mapper.Map<GameDto>(reloaded));
     }
+
 
     // Update a game by Id
     [Microsoft.AspNetCore.Authorization.Authorize]

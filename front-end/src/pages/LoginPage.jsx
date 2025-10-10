@@ -9,31 +9,32 @@ export default function LoginPage({ onLogin }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-
-  // LOGIN HANDLER -------------
+//handle login
   async function handleLogin(e) {
     e.preventDefault();
-    let trimmed = username.trim();
-    console.log("Attempting login with username:", trimmed);
 
-    if (trimmed == "") {
-      console.warn("Username empty, aborting login");
+    const trimmed = username.trim();
+    if (!trimmed) {
       setError("Please enter a username before logging in.");
-      setMessage("");      // clear any previous messages
+      setMessage("");
       return;
     }
 
     setLoading(true);
     setError("");
+    setMessage("");
 
     try {
-      console.log("Sending POST /authentication/LoginAccount with body:", { username: trimmed });
-      // Call backend: GET /api/user/username/{username}
-      // let user1 = await UsersAPI.getByUsername(trimmed);
-      // console.log("User found:", user1);
-      let user = await UsersAPI.getByUsername(trimmed);
-      let auth = await AuthAPI.loginAccount({ username: trimmed });
-      console.log("User found:", user);
+      // Send JSON instead of plaintext
+      const payload = { username: trimmed };
+      console.log("Sending POST /Authentication/LoginAccount with body:", payload);
+      await AuthAPI.loginAccount(payload);
+
+      // verify cookie is set
+      try {
+        await AuthAPI.testAuthorization();
+      } catch {
+      }
 
       setMessage("Logged in successfully!");
       
@@ -47,81 +48,66 @@ export default function LoginPage({ onLogin }) {
     } 
     catch (err) {
       console.error("Login error:", err);
-      setError(`User "${trimmed}" not found.`);
-    } 
-    finally {
+      // Show server error msg if there is one
+      setError(err?.message || "Login failed.");
+    } finally {
       setLoading(false);
     }
   }
 
-  // REGISTER HANDLER -------------
+//handle requestss
   async function handleRegister() {
-    let trimmed = username.trim();
+    const trimmed = username.trim();
     if (!trimmed) {
-      console.log("Blank username");
       setError("Please enter a username before registering.");
+      setMessage("");
       return;
     }
 
-    // Confirm username
-    const confirmUsername = window.confirm(`You entered "${trimmed}". Is this correct?`);
-
-    if (!confirmUsername) {
-      console.log("Registration cancelled.");
+    const confirmed = window.confirm(`You entered "${trimmed}". Is this correct?`);
+    if (!confirmed) {
       setMessage("Registration cancelled.");
+      setError("");
       return;
     }
 
-    // Check if username exists
+    // duplicate user check
     try {
-        const existingUser = await UsersAPI.getByUsername(trimmed);
-        if (existingUser) {
-          console.warn("Duplicate username.");
-          setError(`Username "${trimmed}" already exists. Please choose another.`);
-          setLoading(false);
-          return;
-        }
-    }
-    
-    catch (err) {
-      console.log("Username available, proceeding to registration.");
+      const existing = await UsersAPI.getByUsername(trimmed);
+      if (existing) {
+        setError(`Username "${trimmed}" already exists. Please choose another.`);
+        setMessage("");
+        return;
+      }
+    } catch {
+      // If 404 or error, assume username is available and continue.
     }
 
-    // Ask if admin
-    let isAdmin = window.confirm("Are you an admin?");
-    let selectedRole = isAdmin ? "admin" : "user";
-
-    console.log(`Selected role: ${selectedRole}`);
+    const isAdmin = window.confirm("Are you an admin?");
+    const selectedRole = isAdmin ? "admin" : "user";
 
     setLoading(true);
     setError("");
     setMessage("");
 
     try {
-      // Call backend: POST /api/user
+      //need username and role
+      const newUser = { username: trimmed, role: selectedRole };
+      await AuthAPI.createAccount(newUser);
 
-      let newUserData = {
-        username: trimmed,
-        role: selectedRole,         
-        userGenres: [],        
-        gameLibrary: [],      
+      // verify cookie is set by server after create
+      try {
+        await AuthAPI.testAuthorization();
+      } catch {
       }
 
-      let result = await AuthAPI.createAccount(newUserData);
-      console.log("User registered:", trimmed);
-      
       setMessage(`Account created for "${trimmed}"!`);
-      setError("");
-      //if (onLogin) onLogin(result); 
-    }
-    
-    catch (err) {
-      
+      if (onLogin) onLogin({ username: trimmed });
+    } catch (err) {
       console.error("Register error:", err);
-      setMessage(``);
-      setError(`Could not create user "${trimmed}".`);
-    } 
-    finally {
+      // If backend sends error message, throw it here
+      setError(err?.message || `Could not create user "${trimmed}".`);
+    } finally {
       setLoading(false);
     }
   }
@@ -147,15 +133,11 @@ export default function LoginPage({ onLogin }) {
           {loading ? "Loading..." : "Login"}
         </button>
 
-        <button
-          type="button"
-          className="btn"
-          onClick={handleRegister}
-        >
+        <button type="button" className="btn" onClick={handleRegister} disabled={loading}>
           Register
         </button>
 
-        {message && <p className="message-text">{message}</p>}
+        {message && <p className="success-text">{message}</p>}
         {error && <p className="error-text">{error}</p>}
       </form>
     </div>

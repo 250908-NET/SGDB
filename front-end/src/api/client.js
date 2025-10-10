@@ -1,39 +1,36 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL; 
 
-/**
- * Wrapper around fetch() that automatically prefixes requests with the backend base URL.
- *
- * @param {string} path - The path to append to the base API URL.
- * @param {RequestInit} options - Fetch options.
- *
- * @returns {Promise<any>} The parsed JSON response, or null for 204 responses.
- * @throws {Error} If the response is not ok, throws an error with status and message.
- */
-export async function apiFetch(path, options) {
-  const url = `${API_URL}${path}`;
+export async function apiFetch(path, options = {}) {
+  const { body, headers: h } = options;
+  const headers = new Headers(h || {});
+  let finalBody = body;
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Accept: "application/json",
-      ...options?.headers,
-    },
-  });
-
-  let data = null;
-
-  if (response.status != 204) {
-    try {
-      data = await response.json();
-    } catch (err) {
-      throw new Error(`Failed to parse JSON response: ${err.message}`);
+  if (finalBody !== undefined && finalBody !== null) {
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
     }
-
-    if (!response.ok) {
-      const message = (data && data.message) || response.statusText;
-      throw new Error(`API error ${response.status}: ${message}`);
+    if (headers.get("Content-Type")?.startsWith("application/json") && typeof finalBody !== "string") {
+      finalBody = JSON.stringify(finalBody);
     }
   }
 
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    credentials: "include",
+    headers: { Accept: "application/json", ...Object.fromEntries(headers.entries()) },
+    body: finalBody,
+  });
+
+  if (res.status === 204) return null;
+  if (res.status === 401) throw new Error("Unauthorized: not logged in or session expired.");
+  if (res.status === 403) throw new Error("Forbidden: insufficient permissions.");
+
+  const text = await res.text();
+  let data = null;
+  if (text) { try { data = JSON.parse(text); } catch {} }
+
+  if (!res.ok) {
+    throw new Error(data?.message || text?.slice(0, 300) || `API error ${res.status}: ${res.statusText}`);
+  }
   return data;
 }

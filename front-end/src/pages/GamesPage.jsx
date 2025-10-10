@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
+import { AuthAPI } from "../api/auth";
 import { GamesAPI } from "../api/games";
 import { GenresAPI } from "../api/genres";
 import { CompaniesAPI } from "../api/companies";
 import { PlatformsAPI } from "../api/platforms";
+import { UsersAPI } from "../api/users";
 
 /* We render a small chip element for platform and genre labels. */
 const Chip = ({ text }) => (
@@ -50,16 +52,16 @@ function GameListItem({ game, isSelected, onClick, genreNameFor }) {
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 600 }}>{game.name}</div>
         <div style={{ fontSize: 12, color: "#666" }}>
-          {game.genres.slice(0, 2).map((id, i) => (
+          {(game.genres || []).slice(0, 2).map((id, i) => (
             <span key={id}>
               {i > 0 ? ", " : ""}
               {genreNameFor(id)}
             </span>
           ))}
-          {game.genres.length > 2 ? " ..." : ""}
+          {(game.genres || []).length > 2 ? " ..." : ""}
         </div>
         <div style={{ fontSize: 12, color: "#999" }}>
-          {new Date(game.releaseDate).getFullYear()}
+          {game.releaseDate ? new Date(game.releaseDate).getFullYear() : "—"}
         </div>
       </div>
     </button>
@@ -67,32 +69,42 @@ function GameListItem({ game, isSelected, onClick, genreNameFor }) {
 }
 
 export default function GamesPage() {
+  const { userId } = useApp(); 
+
   // We store raw data from the backend.
   const [allGames, setAllGames] = useState([]);
-  const [genresById, setGenresById] = useState(new Map()); // We map genre id to name.
+  const [genresById, setGenresById] = useState(new Map());       // genre id to name
+  const [companiesById, setCompaniesById] = useState(new Map()); // company id to name
+  const [platformsById, setPlatformsById] = useState(new Map()); // platform id to name
 
-  // We store lookup maps for companies and platforms.
-  const [companiesById, setCompaniesById] = useState(new Map()); // We map company id to name.
-  const [platformsById, setPlatformsById] = useState(new Map()); // We map platform id to name.
-
-  // We store UI state for filters and selection.
+  // UI state
   const [search, setSearch] = useState("");
-  const [genre, setGenre] = useState("ALL"); // We store a genre id or "ALL".
+  const [genre, setGenre] = useState("ALL");
   const [selected, setSelected] = useState(null);
 
-  // We track request state.
+  // Request/auth state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [authorized, setAuthorized] = useState(false);
 
-  // We load games, genres, companies, and platforms together so we can render names immediately.
+  // Add to library UI
+  const [addingId, setAddingId] = useState(null);
+  const [toast, setToast] = useState("");
+
+  // Load after auth
   useEffect(() => {
     let cancel = false;
+
     (async () => {
       try {
         setLoading(true);
         setError("");
+        setToast("");
 
-        // We call all APIs in parallel.
+        await AuthAPI.testAuthorization();
+        if (cancel) return;
+        setAuthorized(true);
+
         const [gamesRaw, genresRaw, companiesRaw, platformsRaw] = await Promise.all([
           GamesAPI.getAll(),
           GenresAPI.getAll(),
@@ -101,52 +113,41 @@ export default function GamesPage() {
         ]);
         if (cancel) return;
 
-        // We build a map from genre id (as string) to name.
-        const genresMap = new Map(
-          (genresRaw || []).map((g) => [String(g.genreId), g.name])
-        );
+        const genresMap = new Map((genresRaw || []).map((g) => [String(g.genreId ?? g.id), g.name]));
         setGenresById(genresMap);
 
-        // We build a map from company id (as string) to name.
-        // We support either companyId or id based on the payload shape.
-        const companiesMap = new Map(
-          (companiesRaw || []).map((c) => [String(c.companyId ?? c.id), c.name])
-        );
+        const companiesMap = new Map((companiesRaw || []).map((c) => [String(c.companyId ?? c.id), c.name]));
         setCompaniesById(companiesMap);
 
-        // We build a map from platform id (as string) to name.
-        const platformsMap = new Map(
-          (platformsRaw || []).map((p) => [String(p.platformId), p.name])
-        );
+        const platformsMap = new Map((platformsRaw || []).map((p) => [String(p.platformId ?? p.id), p.name]));
         setPlatformsById(platformsMap);
 
-        // We store the raw game list and preselect the first game when available.
-        setAllGames(gamesRaw || []);
-        setSelected((gamesRaw && gamesRaw[0]) || null);
+        const list = gamesRaw || [];
+        setAllGames(list);
+        setSelected(list[0] || null);
       } catch (e) {
+        if (cancel) return;
         console.error(e);
-        setError(e.message || "Failed to load games.");
+        if (String(e.message || "").toLowerCase().includes("unauthorized")) {
+          setError("We must be logged in to view games. Please log in and try again.");
+          setAuthorized(false);
+        } else {
+          setError(e.message || "Failed to load games.");
+        }
       } finally {
         if (!cancel) setLoading(false);
       }
     })();
-    return () => {
-      cancel = true;
-    };
+
+    return () => { cancel = true; };
   }, []);
 
-  // We resolve a genre id to a human-readable label.
+  // Helpers to resolve ids to labels
   const genreNameFor = (id) => genresById.get(String(id)) || `Genre ${id}`;
+  const companyNameFor = (id) => (id == null ? "None" : (companiesById.get(String(id)) || `Company ${id}`));
+  const platformNameFor = (id) => platformsById.get(String(id)) || `Platform ${id}`;
 
-  // We resolve a company id to a company name.
-  const companyNameFor = (id) =>
-    id == null ? "None" : (companiesById.get(String(id)) || `Company ${id}`);
-
-  // We resolve a platform id to a platform name.
-  const platformNameFor = (id) =>
-    platformsById.get(String(id)) || `Platform ${id}`;
-
-  // We compute available genres based on the current game list.
+  // Available genres from games
   const allGenres = useMemo(() => {
     const s = new Set();
     allGames.forEach((g) => (g.genres || []).forEach((id) => s.add(String(id))));
@@ -156,11 +157,11 @@ export default function GamesPage() {
     return ["ALL", ...arr];
   }, [allGames, genresById]);
 
-  // We filter the left list by search text and selected genre.
+  // Filtered list
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
-    return allGames.filter((g) => {
-      const byText = t ? g.name.toLowerCase().includes(t) : true;
+    return (allGames || []).filter((g) => {
+      const byText = t ? (g.name || "").toLowerCase().includes(t) : true;
       const byGenre =
         genre === "ALL" ? true : (g.genres || []).map(String).includes(genre);
       return byText && byGenre;
@@ -169,16 +170,40 @@ export default function GamesPage() {
 
   const handleSelect = (game) => setSelected(game);
 
+  // Add to library
+  async function handleAddToLibrary(game) {
+    if (!userId) {
+      setToast("Please log in first.");
+      return;
+    }
+    const gid = game.gameId ?? game.id;
+    try {
+      setAddingId(gid);
+      setToast("");
+      await UsersAPI.linkGame(userId, gid);
+      setToast(`Added "${game.name}" to your library.`);
+    } catch (e) {
+      console.error(e);
+      setToast(e?.message || "Failed to add to library.");
+    } finally {
+      setAddingId(null);
+      setTimeout(() => setToast(""), 2500);
+    }
+  }
+
   return (
     <section className="page" style={{ maxWidth: 1200, margin: "0 auto" }}>
       <h2>Games</h2>
 
-    
-
-      
+      {toast && <div style={{ color: "#2f6f2f", marginBottom: 8 }}>{toast}</div>}
       {error && <div style={{ color: "#b00020", marginBottom: 12 }}>{error}</div>}
+
       {loading ? (
         <div>Loading...</div>
+      ) : !authorized ? (
+        <div style={{ color: "#555", fontSize: 14 }}>
+          We are not authorized to view this page. Please log in.
+        </div>
       ) : (
         <div
           style={{
@@ -188,7 +213,7 @@ export default function GamesPage() {
             alignItems: "start",
           }}
         >
-          {/* We render the search, filter, and results list on the left. */}
+          {/* Left: search/filter + list */}
           <aside>
             <div
               style={{
@@ -234,9 +259,9 @@ export default function GamesPage() {
             <div style={{ display: "grid", gap: 8 }}>
               {filtered.map((g) => (
                 <GameListItem
-                  key={g.gameId}
+                  key={g.gameId ?? g.id}
                   game={g}
-                  isSelected={selected?.gameId === g.gameId}
+                  isSelected={(selected?.gameId ?? selected?.id) === (g.gameId ?? g.id)}
                   onClick={handleSelect}
                   genreNameFor={genreNameFor}
                 />
@@ -249,7 +274,7 @@ export default function GamesPage() {
             </div>
           </aside>
 
-          {/* We render details for the selected game on the right. */}
+          {/* Right: details + Add button */}
           <main>
             {selected ? (
               <div
@@ -279,11 +304,11 @@ export default function GamesPage() {
                   <div>
                     <h3 style={{ margin: "0 0 6px" }}>{selected.name}</h3>
 
-                    {/* We show mapped names for publisher and developer. */}
+                    {/* Publisher/Developer */}
                     <dl style={{ margin: 0, fontSize: 14, color: "#333" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
                         <dt style={{ color: "#666" }}>Release Date</dt>
-                        <dd>{new Date(selected.releaseDate).toLocaleDateString()}</dd>
+                        <dd>{selected.releaseDate ? new Date(selected.releaseDate).toLocaleDateString() : "—"}</dd>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
                         <dt style={{ color: "#666" }}>Publisher</dt>
@@ -295,22 +320,37 @@ export default function GamesPage() {
                       </div>
                     </dl>
 
+                    {/* Platforms */}
                     <div style={{ marginTop: 10 }}>
-                      <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
-                        Platforms
-                      </div>
+                      <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>Platforms</div>
                       {(selected.platforms || []).map((p) => (
                         <Chip key={p} text={platformNameFor(p)} />
                       ))}
                     </div>
 
+                    {/* Genres */}
                     <div style={{ marginTop: 10 }}>
-                      <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
-                        Genres
-                      </div>
+                      <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>Genres</div>
                       {(selected.genres || []).map((id) => (
                         <Chip key={id} text={genreNameFor(id)} />
                       ))}
+                    </div>
+
+                    {/* Add to My Library button */}
+                    <div style={{ marginTop: 16 }}>
+                      <button
+                        onClick={() => handleAddToLibrary(selected)}
+                        disabled={addingId === (selected.gameId ?? selected.id)}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: 8,
+                          border: "1px solid #d1d5db",
+                          background: addingId === (selected.gameId ?? selected.id) ? "#e5e7eb" : "#fff",
+                          cursor: addingId === (selected.gameId ?? selected.id) ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        {addingId === (selected.gameId ?? selected.id) ? "Adding..." : "Add to My Library"}
+                      </button>
                     </div>
                   </div>
                 </div>
