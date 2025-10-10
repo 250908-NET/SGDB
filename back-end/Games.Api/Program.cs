@@ -21,13 +21,18 @@ builder.Services.AddSwaggerGen();
 
 if (builder.Environment.IsDevelopment())
 {
+    // CORS setup — works for all environments
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("AllowAll",
-            policy => policy.AllowAnyOrigin()
-                            .AllowAnyHeader()
-                            .AllowAnyMethod());
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials(); // needed for cookies
+        });
     });
+
 }
 
 
@@ -112,13 +117,14 @@ builder.Services.AddAuthorization(); // Add authorization services
 
 
 var app = builder.Build();
-app.UseAuthentication();
-app.UseAuthorization();
+
 
 if (builder.Environment.IsDevelopment())
 {
-    app.UseCors("AllowAll");
+    app.UseCors("AllowFrontend");
 }
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Log each HTTP request
 app.UseSerilogRequestLogging(opts =>
