@@ -189,7 +189,10 @@ public class GamesController : ControllerBase
         {
             await _service.LinkGameToGenreAsync(id, genreId);
         }
-    
+        var updated = await _service.GetByIdAsync(id);
+        if (updated is null)
+            return Problem("Failed to reload the updated game from the database.");
+            
         return Ok(_mapper.Map<GameDto>(game));
     }
 

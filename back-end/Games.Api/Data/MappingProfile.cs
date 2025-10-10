@@ -22,8 +22,14 @@ namespace Games.Data
                             ? src.GameGenres.Select(gg => gg.Genre.GenreId).ToList()
                             : new List<int>()
                     ));
-            CreateMap<CreateGameDto, Game>();
+            CreateMap<CreateGameDto, Game>()
+                .ForMember(dest => dest.GameId, opt => opt.Ignore())
+                .ForMember(dest => dest.GamePlatforms, opt => opt.Ignore())
+                .ForMember(dest => dest.GameGenres, opt => opt.Ignore());
             CreateMap<UpdateGameDto, Game>()
+                .ForMember(dest => dest.GameId, opt => opt.Ignore())
+                .ForMember(dest => dest.GamePlatforms, opt => opt.Ignore())
+                .ForMember(dest => dest.GameGenres, opt => opt.Ignore())
                 .ForMember(dest => dest.ImageUrl, opt => opt.Condition(src => !string.IsNullOrEmpty(src.ImageUrl)));
 
             // Platform mappings
