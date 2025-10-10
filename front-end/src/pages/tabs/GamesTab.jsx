@@ -317,17 +317,32 @@ export default function GamesTab({ games, companies, genres, platforms, reload }
 
         <button
           type="submit"
+          disabled={loading}
           style={{
             background: selectedGame ? "#10b981" : "#2563eb",
             color: "white",
             padding: "10px 14px",
             border: "none",
             borderRadius: 6,
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1,
           }}
         >
-          {selectedGame ? "Update Game" : "Add Game"}
-        </button>
+          {loading
+            ? selectedGame
+              ? "Updating..."
+              : "Adding..."
+            : selectedGame
+            ? "Update Game"
+          : "Add Game"}
+      </button>
+
+{loading && (
+  <p style={{ color: "#6b7280", fontStyle: "italic" }}>
+    Please wait — processing your request...
+  </p>
+)}
+
 
         {selectedGame && (
           <button
